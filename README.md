@@ -3,6 +3,7 @@ Repository for group assignment "Credit Application Governance Analysis" in Data
 # DEGO Project - Team 3
 # # Team Members
 - Madalena Rocha
+- Nora Puchert
 ## Project Description
 Credit scoring bias analysis for DEGO course.
 ## Structure
