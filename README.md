@@ -3,6 +3,7 @@
 - Madalena Rocha
 - Nora Puchert
 - Connor Brown
+- António Santos
 ## Project Description
 Credit scoring bias analysis for DEGO course.
 ## Structure
