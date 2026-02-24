@@ -2,7 +2,7 @@
 Repository for group assignment "Credit Application Governance Analysis" in Data Ecosystems and Governance in Organizations at Nova SBE.
 # DEGO Project - Team 3
 # # Team Members
-- [ Madalena Rocha]
+- Madalena Rocha
 ## Project Description
 Credit scoring bias analysis for DEGO course.
 ## Structure
