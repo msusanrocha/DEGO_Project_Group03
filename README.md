@@ -2,6 +2,7 @@
 ## Team Members
 - Madalena Rocha
 - Nora Puchert
+- Connor Brown
 ## Project Description
 Credit scoring bias analysis for DEGO course.
 ## Structure
