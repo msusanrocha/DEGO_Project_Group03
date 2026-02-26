@@ -39,8 +39,18 @@ This repository implements an end-to-end post-ingestion pipeline for NovaCred cr
 
 ### `data/quality/`
 
+- `reports/pre/data_quality_report.csv`
+  - Issue registry with `issue_type`, `field_path`, `rule_id`, `description`, `count`, `percent`, `severity`, `example_application_ids`.
+- `reports/post/data_quality_report_postclean.csv`
+  - Same issue registry structure, computed on cleaned columns after remediation.
 - `catalogs/pii_inventory.csv`
   - Field-level privacy classification and dataset presence map.
+- `reports/pre/schema_validation_report.csv` (additional)
+  - Aggregated failure counts/percentages per validation rule.
+- `reports/post/schema_validation_report_postclean.csv` (additional)
+  - Post-clean schema validation summary over cleaned fields.
+- `reports/comparison/before_after_comparison.csv` (additional)
+  - Compact pre-vs-post remediation evidence table with deltas.
 - `catalogs/rule_catalog.csv` (additional)
   - Stage-aware source-of-truth metadata for all rules used in reports.
 - `catalogs/data_dictionary.csv` (additional)
