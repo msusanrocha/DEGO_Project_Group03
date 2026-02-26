@@ -1,0 +1,19 @@
+metric,rule_id,pre_count,pre_percent,post_count,post_percent,delta_count,delta_percent
+Missing required applicant fields,R_APP_002,8,1.59,8,1.59,0,0.0
+Missing processing timestamp,R_APP_001,440,87.65,440,87.65,0,0.0
+Blank email,R_APP_004,7,1.39,7,1.39,0,0.0
+Invalid email format,R_APP_005,4,0.8,4,0.8,0,0.0
+Gender requires normalization,R_APP_006,111,22.11,0,0.0,-111,-22.11
+DOB non-ISO format,R_APP_008,157,31.27,0,0.0,-157,-31.27
+Annual income type/coercion issue,R_APP_010,8,1.59,0,0.0,-8,-1.59
+Annual salary field drift,R_APP_011,5,1.0,5,1.0,0,0.0
+Negative credit history months,R_APP_012,2,0.4,0,0.0,-2,-0.4
+Negative savings balance,R_APP_013,1,0.2,0,0.0,-1,-0.2
+Debt-to-income out of range,R_APP_014,1,0.2,0,0.0,-1,-0.2
+Approved with credit history <6 months,R_APP_018,18,3.59,17,3.39,-1,-0.2
+Spending missing category,R_SPN_001,0,0.0,0,0.0,0,0.0
+Spending amount non-numeric,R_SPN_002,0,0.0,0,0.0,0,0.0
+Spending amount negative,R_SPN_003,0,0.0,0,0.0,0,0.0
+Duplicate application_id rows,R_DUP_001,4,0.8,4,0.8,0,0.0
+Duplicate conflict IDs,R_DUP_CONFLICT,1,0.2,1,0.2,0,0.0
+Canonical rows selected for analysis,R_DUP_CANONICAL,502,100.0,500,99.6,-2,-0.4
