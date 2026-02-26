@@ -1,0 +1,302 @@
+dataset,field_name,description,data_type_expected,allowed_values_or_range,pii_classification,present_in_outputs
+applications_analysis,age_band,Derived privacy-preserving age grouping.,,25-34|35-44|45-54|55-64|65+|<25,Non-PII,applications_analysis
+applications_analysis,age_band_missing_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis
+applications_analysis,annual_income_coerce_failed_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,annual_income_from_salary_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,annual_income_missing_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,annual_income_source,Pipeline output attribute.,,annual_income|annual_salary,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,applicant_pseudo_id,Privacy-preserving pseudonymization output.,,,Quasi-PII,applications_analysis
+applications_analysis,application_id,External application identifier.,string,,Quasi-PII,applications_analysis|applications_curated_full|duplicate_id_report|spending_items_clean
+applications_analysis,application_row_id,Pipeline output attribute.,,"[0, 501]",Non-PII,applications_analysis|applications_curated_full|spending_items_clean
+applications_analysis,approved_missing_fields_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,approved_with_lt6_credit_history_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,approved_with_zero_credit_history_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,blank_email_flag,Derived validation/remediation indicator.,,True|False,PII,applications_analysis|applications_curated_full
+applications_analysis,canonical_reason,Pipeline output attribute.,,latest_processing_timestamp|missing_or_unparseable_timestamp_fallback_max_row_id,Non-PII,applications_analysis|applications_curated_full|duplicate_id_report
+applications_analysis,clean_annual_income,Standardized/cleaned field derived during remediation.,,"[0.0, 171000.0]",Non-PII,applications_analysis|applications_curated_full
+applications_analysis,clean_approved_amount,Standardized/cleaned field derived during remediation.,,"[15000.0, 80000.0]",Non-PII,applications_analysis|applications_curated_full
+applications_analysis,clean_credit_history_months,Standardized/cleaned field derived during remediation.,,>=0,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,clean_debt_to_income,Standardized/cleaned field derived during remediation.,,"[0,1]",Non-PII,applications_analysis|applications_curated_full
+applications_analysis,clean_gender,Standardized/cleaned field derived during remediation.,,Male|Female,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,clean_interest_rate,Standardized/cleaned field derived during remediation.,,"[2.5, 6.5]",Non-PII,applications_analysis|applications_curated_full
+applications_analysis,clean_loan_approved,Standardized/cleaned field derived during remediation.,,False|True,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,clean_processing_timestamp,Standardized/cleaned field derived during remediation.,,2024-01-15T00:00:00Z|2025-12-01T00:00:00Z|2026-03-15T00:00:00Z|2027-01-20T00:00:00Z,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,clean_rejection_reason,Standardized/cleaned field derived during remediation.,,algorithm_risk_score|high_dti_ratio|insufficient_credit_history|low_income,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,clean_savings_balance,Standardized/cleaned field derived during remediation.,,>=0,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,clean_zip_code,Standardized/cleaned field derived during remediation.,,,Quasi-PII,applications_analysis|applications_curated_full
+applications_analysis,credit_history_negative_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,credit_history_non_numeric_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,credit_history_nullified_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,dob_ambiguous_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,dob_missing_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,dob_parse_failed_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,dti_non_numeric_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,dti_nullified_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,dti_out_of_range_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,dup_count,Pipeline output attribute.,,"[1, 2]",Non-PII,applications_analysis|applications_curated_full|duplicate_id_report
+applications_analysis,duplicate_classification,Pipeline output attribute.,,conflict|unique|versioned,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,flag_annual_income_string_type,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,flag_approved_credit_history_lt6,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,flag_approved_credit_history_zero,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,flag_approved_missing_required_fields,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,flag_blank_email,Derived validation/remediation indicator.,,True|False,PII,applications_analysis|applications_curated_full
+applications_analysis,flag_credit_history_negative,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,flag_dob_ambiguous_format,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,flag_dob_non_iso_format,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,flag_dti_out_of_range,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,flag_financial_field_drift_salary,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,flag_gender_needs_normalisation,Derived validation/remediation indicator.,,Male|Female,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,flag_invalid_email,Derived validation/remediation indicator.,,True|False,PII,applications_analysis|applications_curated_full
+applications_analysis,flag_invalid_gender,Derived validation/remediation indicator.,,Male|Female,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,flag_missing_processing_timestamp,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,flag_missing_required_applicant_field,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,flag_missing_ssn_and_ip,Derived validation/remediation indicator.,,True|False,PII,applications_analysis|applications_curated_full
+applications_analysis,flag_private_ip_address,Derived validation/remediation indicator.,,True|False,PII,applications_analysis|applications_curated_full
+applications_analysis,flag_rejected_missing_reason,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,flag_savings_negative,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,gender_invalid_flag,Derived validation/remediation indicator.,,Male|Female,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,gender_missing_flag,Derived validation/remediation indicator.,,Male|Female,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,gender_normalized_flag,Derived validation/remediation indicator.,,Male|Female,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,has_conflict,Pipeline output attribute.,,"[False, True]",Non-PII,applications_analysis|applications_curated_full
+applications_analysis,has_invalid_email,Pipeline output attribute.,,"[False, True]",PII,applications_analysis|applications_curated_full
+applications_analysis,is_canonical_for_analysis,Pipeline output attribute.,,"[True, True]",Non-PII,applications_analysis|applications_curated_full
+applications_analysis,is_duplicate_id,Pipeline output attribute.,,"[False, True]",Non-PII,applications_analysis|applications_curated_full
+applications_analysis,processing_timestamp_parse_failed_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,pseudo_id_fallback_used_flag,Derived validation/remediation indicator.,,True|False,Quasi-PII,applications_analysis
+applications_analysis,pseudo_id_source,Privacy-preserving pseudonymization output.,,email_fallback|name_dob_zip_fallback|ssn,Non-PII,applications_analysis
+applications_analysis,rank_within_id,Pipeline output attribute.,,"[1, 2]",Non-PII,applications_analysis|applications_curated_full
+applications_analysis,raw_applicant_gender,Allowed source variants: Male/Female/M/F.,string,Male|Female,Quasi-PII,applications_analysis|applications_curated_full
+applications_analysis,raw_applicant_zip_code,Location quasi-identifier.,string,,Quasi-PII,applications_analysis|applications_curated_full
+applications_analysis,raw_decision_approved_amount,Required when loan_approved=True.,numeric,"[15000.0, 80000.0]",Non-PII,applications_analysis|applications_curated_full
+applications_analysis,raw_decision_interest_rate,Required when loan_approved=True.,numeric,"[2.5, 6.5]",Non-PII,applications_analysis|applications_curated_full
+applications_analysis,raw_decision_loan_approved,Decision flag.,boolean,"[False, True]",Non-PII,applications_analysis|applications_curated_full
+applications_analysis,raw_decision_rejection_reason,Required when loan_approved=False.,string,algorithm_risk_score|high_dti_ratio|insufficient_credit_history|low_income,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,raw_financial_annual_income,May drift into annual_salary.,numeric,,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,raw_financial_annual_salary,Field drift variant for annual_income.,numeric,"[45000.0, 94000.0]",Non-PII,applications_analysis|applications_curated_full
+applications_analysis,raw_financial_credit_history_months,Must be >= 0.,integer,>=0,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,raw_financial_debt_to_income,"Expected range [0, 1].",numeric,"[0,1]",Non-PII,applications_analysis|applications_curated_full
+applications_analysis,raw_financial_savings_balance,Must be >= 0.,numeric,>=0,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,raw_loan_purpose,Optional top-level context field.,string,auto|business|debt_consolidation|education|home_improvement|medical|moving|personal|vacation|wedding,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,raw_notes,Optional operational notes.,string,DUPLICATE_ENTRY_ERROR|RESUBMISSION,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,raw_processing_timestamp,Processing event time used for canonical selection.,datetime-like string,2024-01-15T00:00:00Z|2025-12-01T00:00:00Z|2026-03-15T00:00:00Z|2027-01-20T00:00:00Z,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,rejected_missing_reason_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,savings_negative_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,savings_non_numeric_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,savings_nullified_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_analysis,zip_missing_flag,Derived validation/remediation indicator.,,True|False,Quasi-PII,applications_analysis|applications_curated_full
+applications_curated_full,annual_income_coerce_failed_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,annual_income_from_salary_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,annual_income_missing_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,annual_income_source,Pipeline output attribute.,,annual_income|annual_salary,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,application_id,External application identifier.,string,,Quasi-PII,applications_analysis|applications_curated_full|duplicate_id_report|spending_items_clean
+applications_curated_full,application_row_id,Pipeline output attribute.,,"[0, 501]",Non-PII,applications_analysis|applications_curated_full|spending_items_clean
+applications_curated_full,approved_missing_fields_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,approved_with_lt6_credit_history_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,approved_with_zero_credit_history_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,blank_email_flag,Derived validation/remediation indicator.,,True|False,PII,applications_analysis|applications_curated_full
+applications_curated_full,canonical_reason,Pipeline output attribute.,,latest_processing_timestamp|missing_or_unparseable_timestamp_fallback_max_row_id,Non-PII,applications_analysis|applications_curated_full|duplicate_id_report
+applications_curated_full,clean_annual_income,Standardized/cleaned field derived during remediation.,,"[0.0, 171000.0]",Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,clean_approved_amount,Standardized/cleaned field derived during remediation.,,"[15000.0, 80000.0]",Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,clean_credit_history_months,Standardized/cleaned field derived during remediation.,,>=0,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,clean_date_of_birth,Standardized/cleaned field derived during remediation.,,,PII,applications_curated_full
+applications_curated_full,clean_debt_to_income,Standardized/cleaned field derived during remediation.,,"[0,1]",Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,clean_email,Standardized/cleaned field derived during remediation.,,,PII,applications_curated_full
+applications_curated_full,clean_gender,Standardized/cleaned field derived during remediation.,,Male|Female,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,clean_interest_rate,Standardized/cleaned field derived during remediation.,,"[2.5, 6.5]",Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,clean_loan_approved,Standardized/cleaned field derived during remediation.,,False|True,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,clean_processing_timestamp,Standardized/cleaned field derived during remediation.,,2024-01-15T00:00:00Z|2025-12-01T00:00:00Z|2026-03-15T00:00:00Z|2027-01-20T00:00:00Z,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,clean_rejection_reason,Standardized/cleaned field derived during remediation.,,algorithm_risk_score|high_dti_ratio|insufficient_credit_history|low_income,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,clean_savings_balance,Standardized/cleaned field derived during remediation.,,>=0,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,clean_zip_code,Standardized/cleaned field derived during remediation.,,,Quasi-PII,applications_analysis|applications_curated_full
+applications_curated_full,credit_history_negative_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,credit_history_non_numeric_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,credit_history_nullified_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,dob_ambiguous_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,dob_missing_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,dob_parse_failed_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,dti_non_numeric_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,dti_nullified_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,dti_out_of_range_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,dup_count,Pipeline output attribute.,,"[1, 2]",Non-PII,applications_analysis|applications_curated_full|duplicate_id_report
+applications_curated_full,duplicate_classification,Pipeline output attribute.,,conflict|unique|versioned,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,flag_annual_income_string_type,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,flag_approved_credit_history_lt6,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,flag_approved_credit_history_zero,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,flag_approved_missing_required_fields,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,flag_blank_email,Derived validation/remediation indicator.,,True|False,PII,applications_analysis|applications_curated_full
+applications_curated_full,flag_credit_history_negative,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,flag_dob_ambiguous_format,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,flag_dob_non_iso_format,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,flag_dti_out_of_range,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,flag_financial_field_drift_salary,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,flag_gender_needs_normalisation,Derived validation/remediation indicator.,,Male|Female,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,flag_invalid_email,Derived validation/remediation indicator.,,True|False,PII,applications_analysis|applications_curated_full
+applications_curated_full,flag_invalid_gender,Derived validation/remediation indicator.,,Male|Female,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,flag_missing_processing_timestamp,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,flag_missing_required_applicant_field,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,flag_missing_ssn_and_ip,Derived validation/remediation indicator.,,True|False,PII,applications_analysis|applications_curated_full
+applications_curated_full,flag_private_ip_address,Derived validation/remediation indicator.,,True|False,PII,applications_analysis|applications_curated_full
+applications_curated_full,flag_rejected_missing_reason,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,flag_savings_negative,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,gender_invalid_flag,Derived validation/remediation indicator.,,Male|Female,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,gender_missing_flag,Derived validation/remediation indicator.,,Male|Female,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,gender_normalized_flag,Derived validation/remediation indicator.,,Male|Female,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,has_conflict,Pipeline output attribute.,,"[False, True]",Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,has_invalid_email,Pipeline output attribute.,,"[False, True]",PII,applications_analysis|applications_curated_full
+applications_curated_full,is_canonical_for_analysis,Pipeline output attribute.,,"[False, True]",Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,is_duplicate_id,Pipeline output attribute.,,"[False, True]",Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,processing_timestamp_parse_failed_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,rank_within_id,Pipeline output attribute.,,"[1, 2]",Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,raw_applicant_date_of_birth,Source supports multiple date formats.,date string,,PII,applications_curated_full
+applications_curated_full,raw_applicant_email,Direct identifier and contact field.,string,,PII,applications_curated_full
+applications_curated_full,raw_applicant_full_name,Direct identifier.,string,,PII,applications_curated_full
+applications_curated_full,raw_applicant_gender,Allowed source variants: Male/Female/M/F.,string,Male|Female,Quasi-PII,applications_analysis|applications_curated_full
+applications_curated_full,raw_applicant_ip_address,Device/network identifier.,IPv4/IPv6 string,,PII,applications_curated_full
+applications_curated_full,raw_applicant_ssn,National identifier.,string,,PII,applications_curated_full
+applications_curated_full,raw_applicant_zip_code,Location quasi-identifier.,string,,Quasi-PII,applications_analysis|applications_curated_full
+applications_curated_full,raw_decision_approved_amount,Required when loan_approved=True.,numeric,"[15000.0, 80000.0]",Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,raw_decision_interest_rate,Required when loan_approved=True.,numeric,"[2.5, 6.5]",Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,raw_decision_loan_approved,Decision flag.,boolean,"[False, True]",Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,raw_decision_rejection_reason,Required when loan_approved=False.,string,algorithm_risk_score|high_dti_ratio|insufficient_credit_history|low_income,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,raw_financial_annual_income,May drift into annual_salary.,numeric,,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,raw_financial_annual_salary,Field drift variant for annual_income.,numeric,"[45000.0, 94000.0]",Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,raw_financial_credit_history_months,Must be >= 0.,integer,>=0,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,raw_financial_debt_to_income,"Expected range [0, 1].",numeric,"[0,1]",Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,raw_financial_savings_balance,Must be >= 0.,numeric,>=0,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,raw_loan_purpose,Optional top-level context field.,string,auto|business|debt_consolidation|education|home_improvement|medical|moving|personal|vacation|wedding,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,raw_notes,Optional operational notes.,string,DUPLICATE_ENTRY_ERROR|RESUBMISSION,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,raw_processing_timestamp,Processing event time used for canonical selection.,datetime-like string,2024-01-15T00:00:00Z|2025-12-01T00:00:00Z|2026-03-15T00:00:00Z|2027-01-20T00:00:00Z,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,rejected_missing_reason_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,savings_negative_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,savings_non_numeric_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,savings_nullified_flag,Derived validation/remediation indicator.,,True|False,Non-PII,applications_analysis|applications_curated_full
+applications_curated_full,zip_missing_flag,Derived validation/remediation indicator.,,True|False,Quasi-PII,applications_analysis|applications_curated_full
+before_after_comparison,delta_count,Pipeline output attribute.,,"[-157, 0]",Non-PII,before_after_comparison
+before_after_comparison,delta_percent,Pipeline output attribute.,,"[-31.27, 0.0]",Non-PII,before_after_comparison
+before_after_comparison,metric,Pipeline output attribute.,,,Non-PII,before_after_comparison
+before_after_comparison,post_count,Pipeline output attribute.,,"[0, 500]",Non-PII,before_after_comparison
+before_after_comparison,post_percent,Pipeline output attribute.,,"[0.0, 99.6]",Non-PII,before_after_comparison
+before_after_comparison,pre_count,Pipeline output attribute.,,"[0, 502]",Non-PII,before_after_comparison
+before_after_comparison,pre_percent,Pipeline output attribute.,,"[0.0, 100.0]",Non-PII,before_after_comparison
+before_after_comparison,rule_id,Pipeline output attribute.,,,Non-PII,before_after_comparison|data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+data_quality_report_post,count,Pipeline output attribute.,,"[0, 497]",Non-PII,data_quality_report_post|data_quality_report_pre
+data_quality_report_post,count_unit,Pipeline output attribute.,,distinct_ids|rows,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+data_quality_report_post,dataset_scope,Pipeline output attribute.,,curated|quality,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+data_quality_report_post,denominator,Pipeline output attribute.,,application_rows|spending_rows,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+data_quality_report_post,description,Pipeline output attribute.,,,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+data_quality_report_post,example_application_ids,Pipeline output attribute.,,,Quasi-PII,data_quality_report_post|data_quality_report_pre|schema_validation_report_post|schema_validation_report_pre
+data_quality_report_post,field_path,Pipeline output attribute.,,,Non-PII,data_quality_report_post|data_quality_report_pre|pii_inventory|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+data_quality_report_post,field_path_annotated,Pipeline output attribute.,,,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+data_quality_report_post,issue_type,Pipeline output attribute.,,Completeness|Consistency|Cross-field logic|Plausibility|Synthetic indicator|Uniqueness|Validity,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog
+data_quality_report_post,percent,Pipeline output attribute.,,"[0.0, 99.0]",Non-PII,data_quality_report_post|data_quality_report_pre
+data_quality_report_post,rule_family,Pipeline output attribute.,,APP|DUP|SPN,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+data_quality_report_post,rule_id,Pipeline output attribute.,,,Non-PII,before_after_comparison|data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+data_quality_report_post,rule_key,Pipeline output attribute.,,,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+data_quality_report_post,severity,Pipeline output attribute.,,high|low|medium,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog
+data_quality_report_post,source_columns,Pipeline output attribute.,,,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+data_quality_report_post,stage,Pipeline output attribute.,,post,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+data_quality_report_post,value_source,Pipeline output attribute.,,clean|derived|metadata|raw,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+data_quality_report_pre,count,Pipeline output attribute.,,"[0, 497]",Non-PII,data_quality_report_post|data_quality_report_pre
+data_quality_report_pre,count_unit,Pipeline output attribute.,,distinct_ids|rows,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+data_quality_report_pre,dataset_scope,Pipeline output attribute.,,quality|raw,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+data_quality_report_pre,denominator,Pipeline output attribute.,,application_rows|spending_rows,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+data_quality_report_pre,description,Pipeline output attribute.,,,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+data_quality_report_pre,example_application_ids,Pipeline output attribute.,,,Quasi-PII,data_quality_report_post|data_quality_report_pre|schema_validation_report_post|schema_validation_report_pre
+data_quality_report_pre,field_path,Pipeline output attribute.,,,Non-PII,data_quality_report_post|data_quality_report_pre|pii_inventory|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+data_quality_report_pre,field_path_annotated,Pipeline output attribute.,,,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+data_quality_report_pre,issue_type,Pipeline output attribute.,,Completeness|Consistency|Cross-field logic|Plausibility|Synthetic indicator|Uniqueness|Validity,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog
+data_quality_report_pre,percent,Pipeline output attribute.,,"[0.0, 99.0]",Non-PII,data_quality_report_post|data_quality_report_pre
+data_quality_report_pre,rule_family,Pipeline output attribute.,,APP|DUP|SPN,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+data_quality_report_pre,rule_id,Pipeline output attribute.,,,Non-PII,before_after_comparison|data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+data_quality_report_pre,rule_key,Pipeline output attribute.,,,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+data_quality_report_pre,severity,Pipeline output attribute.,,high|low|medium,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog
+data_quality_report_pre,source_columns,Pipeline output attribute.,,,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+data_quality_report_pre,stage,Pipeline output attribute.,,pre,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+data_quality_report_pre,value_source,Pipeline output attribute.,,metadata|raw,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+duplicate_id_report,application_id,External application identifier.,string,app_001|app_042,Quasi-PII,applications_analysis|applications_curated_full|duplicate_id_report|spending_items_clean
+duplicate_id_report,canonical_reason,Pipeline output attribute.,,missing_or_unparseable_timestamp_fallback_max_row_id,Non-PII,applications_analysis|applications_curated_full|duplicate_id_report
+duplicate_id_report,canonical_row_id,Pipeline output attribute.,,"[354, 455]",Non-PII,duplicate_id_report
+duplicate_id_report,classification,Pipeline output attribute.,,conflict|versioned,Non-PII,duplicate_id_report|pii_inventory
+duplicate_id_report,dup_count,Pipeline output attribute.,,"[2, 2]",Non-PII,applications_analysis|applications_curated_full|duplicate_id_report
+duplicate_id_report,example_differences,Pipeline output attribute.,,raw_applicant_ssn|raw_applicant_ip_address|raw_applicant_gender|raw_applicant_date_of_birth|raw_applicant_zip_code|raw_notes|raw_notes,Non-PII,duplicate_id_report
+pii_inventory,classification,Pipeline output attribute.,,Non-PII|PII|Quasi-PII,Non-PII,duplicate_id_report|pii_inventory
+pii_inventory,field_path,Pipeline output attribute.,,,Non-PII,data_quality_report_post|data_quality_report_pre|pii_inventory|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+pii_inventory,notes/purpose,Pipeline output attribute.,,,Non-PII,pii_inventory
+pii_inventory,present_in,Pipeline output attribute.,,analysis|raw|curated|raw|curated|analysis,Non-PII,pii_inventory
+raw_json,_id,External application identifier.,string,,Quasi-PII,applications_analysis|applications_curated_full|duplicate_id_report|spending_items_clean
+raw_json,amount,Spending amount must be >= 0.,numeric,,Non-PII,spending_items_clean
+raw_json,annual_income,May drift into annual_salary.,numeric,,Non-PII,applications_analysis|applications_curated_full
+raw_json,annual_salary,Field drift variant for annual_income.,numeric,,Non-PII,applications_analysis|applications_curated_full
+raw_json,approved_amount,Required when loan_approved=True.,numeric,,Non-PII,applications_analysis|applications_curated_full
+raw_json,category,Spending category label.,string,,Non-PII,spending_items_clean
+raw_json,credit_history_months,Must be >= 0.,integer,>=0,Non-PII,applications_analysis|applications_curated_full
+raw_json,date_of_birth,Source supports multiple date formats.,date string,,PII,applications_curated_full
+raw_json,debt_to_income,"Expected range [0, 1].",numeric,"[0,1]",Non-PII,applications_analysis|applications_curated_full
+raw_json,email,Direct identifier and contact field.,string,,PII,applications_curated_full
+raw_json,full_name,Direct identifier.,string,,PII,applications_curated_full
+raw_json,gender,Allowed source variants: Male/Female/M/F.,string,Male|Female,Quasi-PII,applications_analysis|applications_curated_full
+raw_json,interest_rate,Required when loan_approved=True.,numeric,,Non-PII,applications_analysis|applications_curated_full
+raw_json,ip_address,Device/network identifier.,IPv4/IPv6 string,,PII,applications_curated_full
+raw_json,loan_approved,Decision flag.,boolean,,Non-PII,applications_analysis|applications_curated_full
+raw_json,loan_purpose,Optional top-level context field.,string,,Non-PII,applications_analysis|applications_curated_full
+raw_json,notes,Optional operational notes.,string,,Non-PII,applications_analysis|applications_curated_full
+raw_json,processing_timestamp,Processing event time used for canonical selection.,datetime-like string,,Non-PII,applications_analysis|applications_curated_full
+raw_json,rejection_reason,Required when loan_approved=False.,string,,Non-PII,applications_analysis|applications_curated_full
+raw_json,savings_balance,Must be >= 0.,numeric,>=0,Non-PII,applications_analysis|applications_curated_full
+raw_json,ssn,National identifier.,string,,PII,applications_curated_full
+raw_json,zip_code,Location quasi-identifier.,string,,Quasi-PII,applications_analysis|applications_curated_full
+rule_catalog,count_unit,Pipeline output attribute.,,distinct_ids|rows,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+rule_catalog,dataset_scope,Pipeline output attribute.,,curated|quality|raw,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+rule_catalog,denominator,Pipeline output attribute.,,application_rows|spending_rows,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+rule_catalog,description,Pipeline output attribute.,,,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+rule_catalog,field_path,Pipeline output attribute.,,,Non-PII,data_quality_report_post|data_quality_report_pre|pii_inventory|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+rule_catalog,field_path_annotated,Pipeline output attribute.,,,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+rule_catalog,issue_type,Pipeline output attribute.,,Completeness|Consistency|Cross-field logic|KPI|Plausibility|Synthetic indicator|Uniqueness|Validity,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog
+rule_catalog,rule_family,Pipeline output attribute.,,APP|DUP|KPI|SPN,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+rule_catalog,rule_id,Pipeline output attribute.,,,Non-PII,before_after_comparison|data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+rule_catalog,rule_key,Pipeline output attribute.,,,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+rule_catalog,severity,Pipeline output attribute.,,high|low|medium,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog
+rule_catalog,source_columns,Pipeline output attribute.,,,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+rule_catalog,stage,Pipeline output attribute.,,post|pre,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+rule_catalog,value_source,Pipeline output attribute.,,clean|derived|metadata|raw,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+schema_validation_report_post,count_unit,Pipeline output attribute.,,rows,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+schema_validation_report_post,dataset_scope,Pipeline output attribute.,,curated,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+schema_validation_report_post,denominator,Pipeline output attribute.,,application_rows|spending_rows,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+schema_validation_report_post,description,Pipeline output attribute.,,,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+schema_validation_report_post,example_application_ids,Pipeline output attribute.,,|app_001|app_002|app_003|app_004|app_005|app_001|app_075|app_120|app_165|app_268|app_021|app_086|app_089|app_091|app_130|app_047|app_144|app_195|app_223|app_236|app_047|app_144|app_195|app_223|app_286|app_068|app_146|app_204|app_299|app_075|app_120|app_165|app_268|app_350|app_421|app_436|app_449|app_463|app_479,Quasi-PII,data_quality_report_post|data_quality_report_pre|schema_validation_report_post|schema_validation_report_pre
+schema_validation_report_post,failed_count,Pipeline output attribute.,,"[0, 497]",Non-PII,schema_validation_report_post|schema_validation_report_pre
+schema_validation_report_post,failed_percent,Pipeline output attribute.,,"[0.0, 99.0]",Non-PII,schema_validation_report_post|schema_validation_report_pre
+schema_validation_report_post,field_path,Pipeline output attribute.,,,Non-PII,data_quality_report_post|data_quality_report_pre|pii_inventory|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+schema_validation_report_post,field_path_annotated,Pipeline output attribute.,,,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+schema_validation_report_post,rule_family,Pipeline output attribute.,,APP|SPN,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+schema_validation_report_post,rule_id,Pipeline output attribute.,,,Non-PII,before_after_comparison|data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+schema_validation_report_post,rule_key,Pipeline output attribute.,,,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+schema_validation_report_post,source_columns,Pipeline output attribute.,,,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+schema_validation_report_post,stage,Pipeline output attribute.,,post,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+schema_validation_report_post,value_source,Pipeline output attribute.,,clean|derived|raw,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+schema_validation_report_pre,count_unit,Pipeline output attribute.,,rows,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+schema_validation_report_pre,dataset_scope,Pipeline output attribute.,,raw,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+schema_validation_report_pre,denominator,Pipeline output attribute.,,application_rows|spending_rows,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+schema_validation_report_pre,description,Pipeline output attribute.,,,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+schema_validation_report_pre,example_application_ids,Pipeline output attribute.,,,Quasi-PII,data_quality_report_post|data_quality_report_pre|schema_validation_report_post|schema_validation_report_pre
+schema_validation_report_pre,failed_count,Pipeline output attribute.,,"[0, 497]",Non-PII,schema_validation_report_post|schema_validation_report_pre
+schema_validation_report_pre,failed_percent,Pipeline output attribute.,,"[0.0, 99.0]",Non-PII,schema_validation_report_post|schema_validation_report_pre
+schema_validation_report_pre,field_path,Pipeline output attribute.,,,Non-PII,data_quality_report_post|data_quality_report_pre|pii_inventory|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+schema_validation_report_pre,field_path_annotated,Pipeline output attribute.,,,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+schema_validation_report_pre,rule_family,Pipeline output attribute.,,APP|SPN,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+schema_validation_report_pre,rule_id,Pipeline output attribute.,,,Non-PII,before_after_comparison|data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+schema_validation_report_pre,rule_key,Pipeline output attribute.,,,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+schema_validation_report_pre,source_columns,Pipeline output attribute.,,,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+schema_validation_report_pre,stage,Pipeline output attribute.,,pre,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+schema_validation_report_pre,value_source,Pipeline output attribute.,,raw,Non-PII,data_quality_report_post|data_quality_report_pre|rule_catalog|schema_validation_report_post|schema_validation_report_pre
+spending_items_clean,amount_clean,Pipeline output attribute.,,"[51, 899]",Non-PII,spending_items_clean
+spending_items_clean,amount_negative_flag,Derived validation/remediation indicator.,,True|False,Non-PII,spending_items_clean
+spending_items_clean,amount_non_numeric_flag,Derived validation/remediation indicator.,,True|False,Non-PII,spending_items_clean
+spending_items_clean,amount_nullified_flag,Derived validation/remediation indicator.,,True|False,Non-PII,spending_items_clean
+spending_items_clean,application_id,External application identifier.,string,,Quasi-PII,applications_analysis|applications_curated_full|duplicate_id_report|spending_items_clean
+spending_items_clean,application_row_id,Pipeline output attribute.,,"[0, 501]",Non-PII,applications_analysis|applications_curated_full|spending_items_clean
+spending_items_clean,category_clean,Pipeline output attribute.,,,Non-PII,spending_items_clean
+spending_items_clean,category_missing_flag,Derived validation/remediation indicator.,,True|False,Non-PII,spending_items_clean
+spending_items_clean,raw_amount,Spending amount must be >= 0.,numeric,"[51, 899]",Non-PII,spending_items_clean
+spending_items_clean,raw_category,Spending category label.,string,,Non-PII,spending_items_clean
+spending_items_clean,spending_index,Pipeline output attribute.,,"[0, 3]",Non-PII,spending_items_clean
