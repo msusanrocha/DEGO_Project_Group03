@@ -9,10 +9,10 @@
 
 | Name | Role | GitHub |
 |------|------|--------|
-| Connor Brown | Data Engineer | [@Connor144-iv] |
-| Madalena Rocha | Data Scientist | [@msusanrocha] |
-| António Santos | Governance Officer | [@antonioncmsantos-hue] |
-| Nora Puchert | Product Lead | [@npu99] |
+| Connor Brown | Data Engineer | @Connor144-iv |
+| Madalena Rocha | Data Scientist | @msusanrocha |
+| António Santos | Governance Officer | @antonioncmsantos-hue |
+| Nora Puchert | Product Lead | @npu99 |
 
 ---
 
@@ -92,7 +92,7 @@ This repository implements an end-to-end post-ingestion pipeline for NovaCred cr
 - `catalogs/data_dictionary_lineage.csv` (additional)
   - Technical lineage-focused dictionary subset.
 
-  ### Duplicate Handling Policy
+### Duplicate Handling Policy
 
 Canonical record rule for analysis (`applications_analysis.csv`):
 
