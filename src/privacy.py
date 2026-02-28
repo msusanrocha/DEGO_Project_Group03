@@ -208,6 +208,29 @@ def build_analysis_dataset(curated_full_df: pd.DataFrame) -> pd.DataFrame:
     existing_drop = [col for col in direct_pii_cols if col in analysis.columns]
     analysis = analysis.drop(columns=existing_drop)
 
+    # Keep analysis outputs minimal to avoid leakage from audit/remediation fields
+    # and to preserve separation of concerns between modelling and data operations.
+    analysis_columns = [
+        "application_id",
+        "applicant_pseudo_id",
+        "pseudo_id_source",
+        "pseudo_id_fallback_used_flag",
+        "age_band",
+        "age_band_missing_flag",
+        "clean_gender",
+        "clean_zip_code",
+        "clean_annual_income",
+        "clean_credit_history_months",
+        "clean_debt_to_income",
+        "clean_savings_balance",
+        "clean_loan_approved",
+        "clean_interest_rate",
+        "clean_approved_amount",
+        "clean_rejection_reason",
+    ]
+    existing_analysis_columns = [col for col in analysis_columns if col in analysis.columns]
+    analysis = analysis[existing_analysis_columns].copy()
+
     # Enforce one canonical row per application_id for safe analysis output.
     analysis = analysis.drop_duplicates(subset=["application_id"], keep="first")
     return analysis.reset_index(drop=True)
