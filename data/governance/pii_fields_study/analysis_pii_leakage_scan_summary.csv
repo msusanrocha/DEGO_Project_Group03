@@ -1,0 +1,4 @@
+pattern,sample_size_rows,columns_scanned,cell_hits,columns_with_hits
+email_like,300,6,0,0
+ip_like,300,6,0,0
+ssn_like,300,6,0,0
