@@ -1,4 +1,4 @@
-# Privacy & Data Minimization Baseline (Governance Officer)
+# Privacy & Data Minimization Baseline
 
 ## 1. Purpose and scope
 
@@ -21,6 +21,10 @@ We standardize this register into a review-friendly matrix:
 - `data/quality/catalogs/governance/pii_fields_study/pii_presence_matrix.csv`
 
 This register underpins our governance decisions on **GDPR data minimization** and **access control separation**.
+
+**Reproducibility notebook:**
+
+- `data/quality/catalogs/governance/pii_fields_study/governance_pii_evidence.ipynb`
 
 ## 3. Direct PII and quasi-identifiers
 
@@ -50,10 +54,14 @@ Some attributes may remain in the analysis layer but require documentation and m
 
 - **Data minimization** (GDPR Art. 5(1)(c)): direct identifiers are excluded from the analysis layer and kept only in restricted layers where strictly necessary.  
   https://gdpr-info.eu/art-5-gdpr/
+- **Storage limitation** (GDPR Art. 5(1)(e)): direct PII is confined to restricted audit layers; the analysis layer avoids replicating identifiers across downstream workflows.  
+  https://gdpr-info.eu/art-5-gdpr/
+- **Accountability** (GDPR Art. 5(2)): exported evidence artifacts and a reproducible notebook provide verifiable documentation of minimization controls.  
+  https://gdpr-info.eu/art-5-gdpr/
 - **Privacy by design/default** (GDPR Art. 25): the project implements a privacy-safe analytic extract for modeling and fairness analysis.  
   https://gdpr-info.eu/art-25-gdpr/
 - **Security of processing** (GDPR Art. 32): removing direct identifiers and using pseudonymous linkage supports confidentiality and reduces exposure risk.  
-   https://gdpr-info.eu/art-32-gdpr/
+  https://gdpr-info.eu/art-32-gdpr/  
   (Official regulation text: https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng)
 
 ## 5. Evidence: no direct PII in the analysis dataset (structural checks)
@@ -81,6 +89,8 @@ Direct PII can still leak via free-text columns or accidental joins. To detect l
   - IPv4-like,
   - SSN-like (XXX-XX-XXXX).
 
+**Note:** `columns_scanned` counts only text (`object`) columns in the analysis extract (numeric/bool fields are excluded to avoid false positives).
+
 Evidence artifacts:
 
 - `data/quality/catalogs/governance/pii_fields_study/analysis_pii_leakage_scan_summary.csv`
@@ -98,14 +108,18 @@ Result (current run):
 
 ## 7. Access separation and governance controls
 
-- `applications_analysis.csv` is the **approved dataset** for modeling and bias analysis (privacy-safe extract).
-- `applications_curated_full.csv` is the **traceable audit layer** (raw + cleaned + flags + duplicate metadata) and may still contain direct PII; it should be treated as **restricted**.
+- `applications_analysis.csv` is the **approved dataset** for modeling and bias analysis (privacy-safe extract). It includes `applicant_pseudo_id` for pseudonymous linkage and uses privacy-preserving attributes such as `age_band` rather than raw dates of birth.
+- `applications_curated_full.csv` is the **traceable audit layer** (raw + cleaned + flags + duplicate metadata) and may still contain direct PII; it should be treated as **restricted** and not used for modeling.
 
 Recommended controls:
 
 - least-privilege access to audit layers containing PII,
 - access logging for restricted datasets,
-- automated checks in the pipeline: fail builds if direct PII fields appear in analysis.
+- automated checks in the pipeline: fail builds if direct PII fields appear in analysis,
+- documented governance for quasi-identifiers/proxy variables (e.g., ZIP code, gender) and fairness monitoring requirements.
+
+**Public repository hygiene:**  
+If the repository is public, datasets containing direct PII must not be committed; only privacy-safe extracts and aggregated evidence should be stored in version control.
 
 ## 8. Conclusion
 
