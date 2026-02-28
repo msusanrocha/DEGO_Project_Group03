@@ -1,0 +1,34 @@
+stage,issue_group,rule_id,field_path,description,count,percent,severity,example_application_ids,value_source
+pre,Completeness,R_APP_001,processing_timestamp,Missing or blank processing timestamp.,440,87.65,high,app_001|app_002|app_003|app_004|app_005,raw
+pre,Completeness,R_APP_002,applicant_info.*,One or more required applicant fields missing or blank.,8,1.59,high,app_001|app_075|app_120|app_165|app_268,raw
+pre,Uniqueness,R_DUP_003,applicant_info.ssn,Rows where SSN repeats across one or more records.,6,1.2,high,app_016|app_042|app_088|app_101|app_234,raw
+pre,Completeness,R_APP_003,applicant_info.ssn|applicant_info.ip_address,Both SSN and IP address are missing or blank.,5,1.0,high,app_001|app_075|app_120|app_165|app_268,raw
+pre,Uniqueness,R_DUP_001,_id,Rows with duplicated application_id values.,4,0.8,high,app_001|app_042,metadata
+pre,Validity,R_APP_012,financials.credit_history_months,Credit history months is negative.,2,0.4,high,app_043|app_156,raw
+pre,Uniqueness,R_DUP_002,_id,Distinct application_id values that are duplicated.,2,0.4,high,app_001|app_042,metadata
+pre,Uniqueness,R_DUP_004,applicant_info.ssn,Distinct SSN values that appear across different application IDs.,2,0.4,high,app_016|app_088|app_101|app_234,raw
+pre,Validity,R_APP_013,financials.savings_balance,Savings balance is negative.,1,0.2,high,app_290,raw
+pre,Validity,R_APP_014,financials.debt_to_income,"Debt-to-income is outside the allowed range [0, 1].",1,0.2,high,app_402,raw
+pre,Consistency,R_APP_009,applicant_info.date_of_birth,"Date of birth matches the ambiguous NN/NN/YYYY pattern. When DOB is NN/NN/YYYY and both NN <= 12, parse as MM/DD/YYYY.",39,7.77,medium,app_021|app_086|app_089|app_091|app_130,raw
+pre,Cross-field logic,R_APP_018,financials.credit_history_months,Loan approved with less than 6 months of credit history.,18,3.59,medium,app_043|app_047|app_144|app_195|app_223,raw
+pre,Cross-field logic,R_APP_017,financials.credit_history_months,Loan approved with zero months of credit history.,11,2.19,medium,app_047|app_144|app_195|app_223|app_286,raw
+pre,Completeness,R_APP_004,applicant_info.email,Email is missing or blank.,7,1.39,medium,app_075|app_120|app_165|app_268|app_350,raw
+pre,Consistency,R_APP_011,financials.annual_salary,Annual salary is populated instead of annual income.,5,1.0,medium,app_421|app_436|app_449|app_463|app_479,raw
+pre,Validity,R_APP_005,applicant_info.email,Email does not match the expected format.,4,0.8,medium,app_068|app_146|app_204|app_299,raw
+pre,Privacy,R_APP_019,applicant_info.ip_address,IP address is in a private range and likely masked or synthetic.,497,99.0,low,app_001|app_002|app_003|app_004|app_005,raw
+pre,Consistency,R_APP_008,applicant_info.date_of_birth,Date of birth is not in canonical YYYY-MM-DD form.,157,31.27,low,app_004|app_005|app_014|app_019|app_020,raw
+pre,Consistency,R_APP_006,applicant_info.gender,Gender is not already in canonical form.,111,22.11,low,app_004|app_016|app_019|app_020|app_023,raw
+post,Completeness,R_APP_001,processing_timestamp,Missing or blank processing timestamp.,440,87.65,high,app_001|app_002|app_003|app_004|app_005,clean
+post,Completeness,R_APP_002,applicant_info.*,One or more required applicant fields missing or blank.,8,1.59,high,app_001|app_075|app_120|app_165|app_268,clean
+post,Uniqueness,R_DUP_003,applicant_info.ssn,Rows where SSN repeats across one or more records.,6,1.2,high,app_016|app_042|app_088|app_101|app_234,raw
+post,Completeness,R_APP_003,applicant_info.ssn|applicant_info.ip_address,Both SSN and IP address are missing or blank.,5,1.0,high,app_001|app_075|app_120|app_165|app_268,raw
+post,Uniqueness,R_DUP_001,_id,Rows with duplicated application_id values.,4,0.8,high,app_001|app_042,metadata
+post,Uniqueness,R_DUP_002,_id,Distinct application_id values that are duplicated.,2,0.4,high,app_001|app_042,metadata
+post,Uniqueness,R_DUP_004,applicant_info.ssn,Distinct SSN values that appear across different application IDs.,2,0.4,high,app_016|app_088|app_101|app_234,raw
+post,Consistency,R_APP_009,applicant_info.date_of_birth,"Date of birth matches the ambiguous NN/NN/YYYY pattern. When DOB is NN/NN/YYYY and both NN <= 12, parse as MM/DD/YYYY.",39,7.77,medium,app_021|app_086|app_089|app_091|app_130,derived
+post,Cross-field logic,R_APP_018,financials.credit_history_months,Loan approved with less than 6 months of credit history.,17,3.39,medium,app_047|app_144|app_195|app_223|app_236,clean
+post,Cross-field logic,R_APP_017,financials.credit_history_months,Loan approved with zero months of credit history.,11,2.19,medium,app_047|app_144|app_195|app_223|app_286,clean
+post,Completeness,R_APP_004,applicant_info.email,Email is missing or blank.,7,1.39,medium,app_075|app_120|app_165|app_268|app_350,clean
+post,Consistency,R_APP_011,financials.annual_salary,Annual salary is populated instead of annual income.,5,1.0,medium,app_421|app_436|app_449|app_463|app_479,derived
+post,Validity,R_APP_005,applicant_info.email,Email does not match the expected format.,4,0.8,medium,app_068|app_146|app_204|app_299,clean
+post,Privacy,R_APP_019,applicant_info.ip_address,IP address is in a private range and likely masked or synthetic.,497,99.0,low,app_001|app_002|app_003|app_004|app_005,raw

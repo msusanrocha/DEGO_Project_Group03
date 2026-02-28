@@ -2,46 +2,35 @@ from __future__ import annotations
 
 from typing import Any
 
-import numpy as np
 import pandas as pd
 
 from . import schema
 
-RULE_ANNOTATION_COLUMNS = [
-    "rule_key",
-    "rule_family",
-    "field_path_annotated",
-    "source_columns",
-    "value_source",
-    "dataset_scope",
-    "denominator",
-    "count_unit",
-]
+
+SEVERITY_ORDER = {"high": 0, "medium": 1, "low": 2}
 
 
 def _values_equal(left: Any, right: Any) -> bool:
-    """Compare values with NA-aware equality semantics."""
+    """Compare scalar values with NA-aware equality semantics."""
     if pd.isna(left) and pd.isna(right):
         return True
     return left == right
 
 
 def _rows_identical(group: pd.DataFrame, columns: list[str]) -> bool:
-    """Return True if all rows in a group match for the selected columns."""
+    """Return True when all rows in the group match across the selected columns."""
     if len(group) <= 1:
         return True
     baseline = group.iloc[0]
     for _, row in group.iloc[1:].iterrows():
-        for col in columns:
-            if not _values_equal(baseline[col], row[col]):
+        for column in columns:
+            if not _values_equal(baseline[column], row[column]):
                 return False
     return True
 
 
-def _example_diff_columns(
-    group: pd.DataFrame, canonical_row_id: int, compare_cols: list[str], max_cols: int = 6
-) -> str:
-    """Return a compact pipe-delimited list of differing columns vs canonical row."""
+def _example_diff_columns(group: pd.DataFrame, canonical_row_id: int, compare_cols: list[str], max_cols: int = 5) -> str:
+    """Return a compact pipe-delimited list of columns that differ from the canonical row."""
     canonical = group.loc[group["application_row_id"] == canonical_row_id]
     if canonical.empty:
         return ""
@@ -49,46 +38,37 @@ def _example_diff_columns(
     for _, row in group.iterrows():
         if int(row["application_row_id"]) == canonical_row_id:
             continue
-        diff_cols = [col for col in compare_cols if not _values_equal(row[col], canonical_row[col])]
+        diff_cols = [column for column in compare_cols if not _values_equal(row[column], canonical_row[column])]
         if diff_cols:
             return "|".join(diff_cols[:max_cols])
     return ""
 
 
 def analyze_duplicate_ids(applications_df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Classify duplicate application_id records and generate canonical selection metadata."""
+    """Classify duplicate application IDs and mark canonical rows for analysis."""
     df = applications_df.copy()
-    df["parsed_processing_timestamp"] = pd.to_datetime(
-        df["raw_processing_timestamp"], errors="coerce", utc=True
-    )
+    df["parsed_processing_timestamp"] = pd.to_datetime(df["raw_processing_timestamp"], errors="coerce", utc=True)
+
+    compare_cols_all = [column for column in df.columns if column not in {"application_row_id", "parsed_processing_timestamp"}]
+    compare_cols_versioned = [column for column in compare_cols_all if column not in {"raw_processing_timestamp", "raw_notes"}]
 
     duplicate_rows: list[dict[str, Any]] = []
     metadata_rows: list[dict[str, Any]] = []
-    compare_cols_all = [c for c in df.columns if c not in {"application_row_id", "parsed_processing_timestamp"}]
-    compare_cols_versioned = [
-        c
-        for c in compare_cols_all
-        if c not in {"raw_processing_timestamp", "raw_notes"}
-    ]
 
-    grouped = df.groupby("application_id", dropna=False, sort=True)
-    for application_id, group in grouped:
+    for application_id, group in df.groupby("application_id", dropna=False, sort=True):
         group_sorted = group.sort_values("application_row_id").copy()
-        row_ids = group_sorted["application_row_id"].astype(int).tolist()
         dup_count = len(group_sorted)
         is_duplicate = dup_count > 1
 
         parsed = group_sorted["parsed_processing_timestamp"]
-        parsed_present = parsed.notna().any()
-
-        if parsed_present:
-            max_ts = parsed.max()
-            ts_candidates = group_sorted.loc[parsed == max_ts]
-            if len(ts_candidates) == 1:
-                canonical_row_id = int(ts_candidates["application_row_id"].iloc[0])
+        if parsed.notna().any():
+            latest_ts = parsed.max()
+            candidates = group_sorted.loc[parsed == latest_ts]
+            if len(candidates) == 1:
+                canonical_row_id = int(candidates["application_row_id"].iloc[0])
                 canonical_reason = "latest_processing_timestamp"
             else:
-                canonical_row_id = int(ts_candidates["application_row_id"].max())
+                canonical_row_id = int(candidates["application_row_id"].max())
                 canonical_reason = "timestamp_tie_fallback_max_row_id"
         else:
             canonical_row_id = int(group_sorted["application_row_id"].max())
@@ -100,7 +80,7 @@ def analyze_duplicate_ids(applications_df: pd.DataFrame) -> tuple[pd.DataFrame, 
             classification = "exact"
         elif _rows_identical(group_sorted, compare_cols_versioned):
             classification = "versioned"
-        elif parsed_present and parsed.dropna().nunique() >= 1:
+        elif parsed.notna().any():
             classification = "versioned"
         else:
             classification = "conflict"
@@ -113,467 +93,182 @@ def analyze_duplicate_ids(applications_df: pd.DataFrame) -> tuple[pd.DataFrame, 
                     "classification": classification,
                     "canonical_row_id": canonical_row_id,
                     "canonical_reason": canonical_reason,
-                    "example_differences": _example_diff_columns(
-                        group_sorted,
-                        canonical_row_id=canonical_row_id,
-                        compare_cols=compare_cols_all,
-                    ),
+                    "example_differences": _example_diff_columns(group_sorted, canonical_row_id, compare_cols_all),
                 }
             )
 
-        for rank, row_id in enumerate(row_ids, start=1):
+        for _, row in group_sorted.iterrows():
             metadata_rows.append(
                 {
-                    "application_row_id": row_id,
+                    "application_row_id": int(row["application_row_id"]),
                     "application_id": application_id,
                     "is_duplicate_id": bool(is_duplicate),
-                    "dup_count": int(dup_count),
-                    "rank_within_id": int(rank),
-                    "is_canonical_for_analysis": bool(row_id == canonical_row_id),
+                    "is_canonical_for_analysis": bool(int(row["application_row_id"]) == canonical_row_id),
                     "has_conflict": bool(classification == "conflict"),
-                    "duplicate_classification": classification,
-                    "canonical_reason": canonical_reason,
                 }
             )
 
-    duplicate_report = pd.DataFrame(duplicate_rows)
-    if duplicate_report.empty:
-        duplicate_report = pd.DataFrame(
-            columns=[
-                "application_id",
-                "dup_count",
-                "classification",
-                "canonical_row_id",
-                "canonical_reason",
-                "example_differences",
-            ]
-        )
-    else:
-        duplicate_report = duplicate_report.sort_values("application_id").reset_index(drop=True)
+    duplicate_report = pd.DataFrame(
+        duplicate_rows,
+        columns=["application_id", "dup_count", "classification", "canonical_row_id", "canonical_reason", "example_differences"],
+    ).sort_values("application_id").reset_index(drop=True)
 
-    metadata_df = pd.DataFrame(metadata_rows).sort_values("application_row_id").reset_index(drop=True)
-    return duplicate_report, metadata_df
+    metadata = pd.DataFrame(
+        metadata_rows,
+        columns=["application_row_id", "application_id", "is_duplicate_id", "is_canonical_for_analysis", "has_conflict"],
+    ).sort_values("application_row_id").reset_index(drop=True)
+    return duplicate_report, metadata
 
 
 def _example_ids(application_ids: pd.Series, mask: pd.Series, max_examples: int = 5) -> str:
-    """Return pipe-delimited example application IDs for flagged records."""
+    """Return a compact pipe-delimited set of example application IDs for a flagged mask."""
     return "|".join(
-        application_ids[mask]
-        .dropna()
-        .astype(str)
-        .drop_duplicates()
-        .sort_values()
-        .head(max_examples)
-        .tolist()
+        application_ids[mask].dropna().astype(str).drop_duplicates().sort_values().head(max_examples).tolist()
     )
 
 
-def _build_issue_row(
-    *,
-    stage: str,
-    issue_type: str,
-    field_path: str,
-    rule_id: str,
-    description: str,
-    count: int,
-    percent: float,
-    severity: str,
-    example_application_ids: str,
-) -> dict[str, Any]:
-    """Build a normalized quality-issue report row."""
-    return {
-        "stage": stage,
-        "issue_type": issue_type,
-        "field_path": field_path,
-        "rule_id": rule_id,
-        "description": description,
-        "count": int(count),
-        "percent": round(float(percent), 2),
-        "severity": severity,
-        "example_application_ids": example_application_ids,
-    }
-
-
-def assert_rule_catalog_coverage(
-    report_df: pd.DataFrame,
-    rule_catalog_df: pd.DataFrame,
-    report_name: str,
-    stage_aware: bool = True,
-) -> None:
-    """Fail fast if report rule IDs are not represented in the consolidated catalog."""
-    if report_df.empty:
-        return
-    if stage_aware and "stage" in report_df.columns:
-        missing_by_stage: dict[str, list[str]] = {}
-        for stage in sorted(report_df["stage"].dropna().astype(str).unique()):
-            report_ids = set(
-                report_df.loc[report_df["stage"].astype(str) == stage, "rule_id"].dropna().astype(str)
-            )
-            catalog_ids = set(
-                rule_catalog_df.loc[
-                    rule_catalog_df["stage"].astype(str) == stage, "rule_id"
-                ].dropna().astype(str)
-            )
-            missing = sorted(report_ids - catalog_ids)
-            if missing:
-                missing_by_stage[stage] = missing
-        if missing_by_stage:
-            details = "; ".join(
-                f"{stage}: {', '.join(ids)}" for stage, ids in sorted(missing_by_stage.items())
-            )
-            raise ValueError(
-                f"{report_name} contains rule_id values missing from rule catalog: {details}"
-            )
-        return
-
-    report_ids = set(report_df["rule_id"].dropna().astype(str))
-    catalog_ids = set(rule_catalog_df["rule_id"].dropna().astype(str))
-    missing = sorted(report_ids - catalog_ids)
-    if missing:
-        raise ValueError(
-            f"{report_name} contains rule_id values missing from rule catalog: {', '.join(missing)}"
-        )
-
-
-def annotate_report_with_rule_catalog(
-    report_df: pd.DataFrame,
-    rule_catalog_df: pd.DataFrame,
-    report_name: str,
-) -> pd.DataFrame:
-    """Join consolidated rule annotations into a stage-aware report dataframe."""
-    assert_rule_catalog_coverage(
-        report_df=report_df,
-        rule_catalog_df=rule_catalog_df,
-        report_name=report_name,
-        stage_aware=True,
-    )
-    catalog_subset = (
-        rule_catalog_df[["stage", "rule_id", *RULE_ANNOTATION_COLUMNS]]
-        .drop_duplicates(subset=["stage", "rule_id"])
-        .copy()
-    )
-    annotated = report_df.merge(
-        catalog_subset,
-        on=["stage", "rule_id"],
-        how="left",
-        validate="many_to_one",
-    )
-    return annotated
-
-
-def build_data_quality_report(
-    *,
-    applications_df: pd.DataFrame,
-    application_flags: pd.DataFrame,
-    duplicate_report: pd.DataFrame,
-    duplicate_metadata: pd.DataFrame,
-    spending_df: pd.DataFrame,
-    spending_flags: pd.DataFrame,
-    stage: str = "pre",
-    application_rules: dict[str, schema.RuleDef] | None = None,
-    spending_rules: dict[str, schema.RuleDef] | None = None,
-    ssn_column: str = "raw_applicant_ssn",
-    rule_catalog: pd.DataFrame | None = None,
-) -> pd.DataFrame:
-    """Build an issue registry across application, spending, and uniqueness checks."""
+def _rule_rows(data_df: pd.DataFrame, flags: pd.DataFrame, rules: dict[str, schema.RuleDef], stage: str) -> list[dict[str, Any]]:
+    """Convert rule flags into compact issue report rows."""
     rows: list[dict[str, Any]] = []
-    app_denominator = len(applications_df.index)
-    spending_denominator = len(spending_df.index)
-    app_rules = application_rules or schema.APPLICATION_RULES
-    spend_rules = spending_rules or schema.SPENDING_RULES
-
-    for flag_col, rule in app_rules.items():
-        if flag_col not in application_flags.columns:
+    denominator = len(data_df.index)
+    for flag_column, rule in rules.items():
+        if flag_column not in flags.columns:
             continue
-        mask = application_flags[flag_col].fillna(False).astype(bool)
+        mask = flags[flag_column].fillna(False).astype(bool)
         count = int(mask.sum())
-        percent = (count / app_denominator) * 100 if app_denominator else 0.0
-        rows.append(
-            _build_issue_row(
-                stage=stage,
-                issue_type=rule.issue_type,
-                field_path=rule.field_path,
-                rule_id=rule.rule_id,
-                description=rule.description,
-                count=count,
-                percent=percent,
-                severity=rule.severity,
-                example_application_ids=_example_ids(applications_df["application_id"], mask),
-            )
-        )
-
-    if app_denominator:
-        dup_mask = duplicate_metadata["is_duplicate_id"].fillna(False).astype(bool)
-        rows.append(
-            _build_issue_row(
-                stage=stage,
-                issue_type="Uniqueness",
-                field_path="_id",
-                rule_id="R_DUP_001",
-                description="Rows with duplicated application_id values.",
-                count=int(dup_mask.sum()),
-                percent=(float(dup_mask.sum()) / app_denominator) * 100,
-                severity="high",
-                example_application_ids=_example_ids(
-                    duplicate_metadata["application_id"],
-                    dup_mask,
-                ),
-            )
-        )
-        rows.append(
-            _build_issue_row(
-                stage=stage,
-                issue_type="Uniqueness",
-                field_path="_id",
-                rule_id="R_DUP_002",
-                description="Distinct application_id keys that are duplicated.",
-                count=int(len(duplicate_report.index)),
-                percent=(float(len(duplicate_report.index)) / app_denominator) * 100,
-                severity="high",
-                example_application_ids="|".join(
-                    duplicate_report["application_id"].astype(str).sort_values().head(5).tolist()
-                ),
-            )
-        )
-
-        if ssn_column in applications_df.columns:
-            ssn = applications_df[ssn_column].fillna("").astype(str).str.strip()
-        else:
-            ssn = pd.Series([""] * app_denominator, index=applications_df.index, dtype="string")
-        non_blank_ssn = ssn != ""
-        ssn_counts = ssn[non_blank_ssn].value_counts()
-        duplicated_ssn_values = ssn_counts[ssn_counts > 1].index
-        dup_ssn_mask = ssn.isin(duplicated_ssn_values)
-        rows.append(
-            _build_issue_row(
-                stage=stage,
-                issue_type="Uniqueness",
-                field_path="applicant_info.ssn",
-                rule_id="R_DUP_003",
-                description="Rows where SSN repeats across one or more records.",
-                count=int(dup_ssn_mask.sum()),
-                percent=(float(dup_ssn_mask.sum()) / app_denominator) * 100,
-                severity="high",
-                example_application_ids=_example_ids(applications_df["application_id"], dup_ssn_mask),
-            )
-        )
-
-        ssn_to_app = (
-            applications_df.loc[dup_ssn_mask, [ssn_column, "application_id"]]
-            .dropna(subset=[ssn_column])
-            .assign(**{ssn_column: lambda d: d[ssn_column].astype(str).str.strip()})
-        )
-        cross_app_ssn = (
-            ssn_to_app.groupby(ssn_column)["application_id"].nunique().pipe(lambda s: s[s > 1])
-        )
-        cross_app_ssn_values = set(cross_app_ssn.index.tolist())
-        cross_app_mask = (
-            ssn.isin(cross_app_ssn_values)
-        )
-        rows.append(
-            _build_issue_row(
-                stage=stage,
-                issue_type="Uniqueness",
-                field_path="applicant_info.ssn",
-                rule_id="R_DUP_004",
-                description="Distinct SSN values that appear across different application IDs.",
-                count=int(len(cross_app_ssn_values)),
-                percent=(float(len(cross_app_ssn_values)) / app_denominator) * 100,
-                severity="high",
-                example_application_ids=_example_ids(applications_df["application_id"], cross_app_mask),
-            )
-        )
-
-    for flag_col, rule in spend_rules.items():
-        if flag_col not in spending_flags.columns:
+        if count == 0:
             continue
-        mask = spending_flags[flag_col].fillna(False).astype(bool)
-        count = int(mask.sum())
-        percent = (count / spending_denominator) * 100 if spending_denominator else 0.0
-        rows.append(
-            _build_issue_row(
-                stage=stage,
-                issue_type=rule.issue_type,
-                field_path=rule.field_path,
-                rule_id=rule.rule_id,
-                description=rule.description,
-                count=count,
-                percent=percent,
-                severity=rule.severity,
-                example_application_ids=_example_ids(spending_df["application_id"], mask),
-            )
-        )
-
-    report = pd.DataFrame(rows).sort_values(["stage", "rule_id"]).reset_index(drop=True)
-    catalog_df = rule_catalog if rule_catalog is not None else schema.build_rule_catalog()
-    return annotate_report_with_rule_catalog(
-        report_df=report,
-        rule_catalog_df=catalog_df,
-        report_name="data_quality_report",
-    )
-
-
-def build_schema_validation_report(
-    *,
-    applications_df: pd.DataFrame,
-    application_flags: pd.DataFrame,
-    spending_df: pd.DataFrame,
-    spending_flags: pd.DataFrame,
-    stage: str = "pre",
-    application_rules: dict[str, schema.RuleDef] | None = None,
-    spending_rules: dict[str, schema.RuleDef] | None = None,
-    rule_catalog: pd.DataFrame | None = None,
-) -> pd.DataFrame:
-    """Aggregate schema validation failures for applications and spending datasets."""
-    app_rules = application_rules or schema.APPLICATION_RULES
-    spend_rules = spending_rules or schema.SPENDING_RULES
-    app_summary = schema.summarize_validation_flags(
-        flags=application_flags,
-        rules=app_rules,
-        application_ids=applications_df["application_id"],
-        stage=stage,
-    )
-    spending_summary = schema.summarize_validation_flags(
-        flags=spending_flags,
-        rules=spend_rules,
-        application_ids=spending_df["application_id"],
-        stage=stage,
-    )
-    report = pd.concat([app_summary, spending_summary], ignore_index=True).sort_values(
-        ["stage", "rule_id"]
-    )
-    catalog_df = rule_catalog if rule_catalog is not None else schema.build_rule_catalog()
-    return annotate_report_with_rule_catalog(
-        report_df=report,
-        rule_catalog_df=catalog_df,
-        report_name="schema_validation_report",
-    )
-
-
-def summarise_cleaning_changes(clean_df: pd.DataFrame) -> pd.DataFrame:
-    """Count records affected by key deterministic remediation actions."""
-    actions = {
-        "A_CLEAN_001": ("annual_income_from_salary_flag", "annual_salary mapped into clean_annual_income"),
-        "A_CLEAN_002": ("credit_history_nullified_flag", "Negative credit_history_months nullified"),
-        "A_CLEAN_003": ("dti_nullified_flag", "Out-of-range debt_to_income nullified"),
-        "A_CLEAN_004": ("savings_nullified_flag", "Negative savings_balance nullified"),
-        "A_CLEAN_005": ("dob_parse_failed_flag", "DOB parse failed and set to null"),
-        "A_CLEAN_006": ("dob_ambiguous_flag", "DOB parsed using ambiguity fallback rule"),
-    }
-    rows = []
-    denominator = len(clean_df.index)
-    for action_id, (col, description) in actions.items():
-        if col not in clean_df.columns:
-            continue
-        count = int(clean_df[col].fillna(False).astype(bool).sum())
         rows.append(
             {
-                "action_id": action_id,
-                "description": description,
+                "stage": stage,
+                "issue_group": rule.issue_group,
+                "rule_id": rule.rule_id,
+                "field_path": rule.field_path,
+                "description": rule.description,
                 "count": count,
                 "percent": round((count / denominator) * 100 if denominator else 0.0, 2),
+                "severity": rule.severity,
+                "example_application_ids": _example_ids(data_df["application_id"], mask),
             }
         )
-    return pd.DataFrame(rows)
+    return rows
 
 
-def _lookup_metric(report: pd.DataFrame, rule_id: str) -> tuple[int, float]:
-    """Fetch count and percent for a given rule_id from a quality report."""
-    row = report.loc[report["rule_id"] == rule_id]
+def _duplicate_rows(applications_df: pd.DataFrame, duplicate_report: pd.DataFrame, duplicate_metadata: pd.DataFrame, stage: str, ssn_column: str) -> list[dict[str, Any]]:
+    """Build duplicate and repeated-SSN issue rows for the quality report."""
+    rows: list[dict[str, Any]] = []
+    denominator = len(applications_df.index)
+    duplicate_rules = {item["rule_id"]: item for item in schema.DUPLICATE_RULES}
+    dup_mask = duplicate_metadata["is_duplicate_id"].fillna(False).astype(bool)
+
+    def append(rule_id: str, count: int, percent: float, examples: str) -> None:
+        if count == 0:
+            return
+        item = duplicate_rules[rule_id]
+        rows.append(
+            {
+                "stage": stage,
+                "issue_group": item["issue_group"],
+                "rule_id": rule_id,
+                "field_path": item["field_path"],
+                "description": item["description"],
+                "count": int(count),
+                "percent": round(percent, 2),
+                "severity": item["severity"],
+                "example_application_ids": examples,
+            }
+        )
+
+    append("R_DUP_001", int(dup_mask.sum()), (float(dup_mask.sum()) / denominator) * 100 if denominator else 0.0, _example_ids(duplicate_metadata["application_id"], dup_mask))
+    append("R_DUP_002", int(len(duplicate_report.index)), (float(len(duplicate_report.index)) / denominator) * 100 if denominator else 0.0, "|".join(duplicate_report["application_id"].astype(str).sort_values().head(5).tolist()))
+
+    if ssn_column in applications_df.columns:
+        ssn = applications_df[ssn_column].fillna("").astype(str).str.strip()
+        non_blank = ssn.ne("")
+        ssn_counts = ssn[non_blank].value_counts()
+        duplicated_ssn_values = ssn_counts[ssn_counts > 1].index
+        dup_ssn_mask = ssn.isin(duplicated_ssn_values)
+        append("R_DUP_003", int(dup_ssn_mask.sum()), (float(dup_ssn_mask.sum()) / denominator) * 100 if denominator else 0.0, _example_ids(applications_df["application_id"], dup_ssn_mask))
+
+        ssn_to_app = applications_df.loc[dup_ssn_mask, [ssn_column, "application_id"]].dropna(subset=[ssn_column]).assign(**{ssn_column: lambda frame: frame[ssn_column].astype(str).str.strip()})
+        cross_app = ssn_to_app.groupby(ssn_column)["application_id"].nunique()
+        cross_app_values = set(cross_app[cross_app > 1].index.tolist())
+        cross_app_mask = ssn.isin(cross_app_values)
+        append("R_DUP_004", int(len(cross_app_values)), (float(len(cross_app_values)) / denominator) * 100 if denominator else 0.0, _example_ids(applications_df["application_id"], cross_app_mask))
+
+    return rows
+
+
+def build_data_quality_report(*, applications_df: pd.DataFrame, application_flags: pd.DataFrame, duplicate_report: pd.DataFrame, duplicate_metadata: pd.DataFrame, spending_df: pd.DataFrame, spending_flags: pd.DataFrame, stage: str, rule_catalog: pd.DataFrame | None = None, ssn_column: str = "raw_applicant_ssn") -> pd.DataFrame:
+    """Build a concise issue registry for one pipeline stage."""
+    rows = []
+    rows.extend(_rule_rows(applications_df, application_flags, schema.APPLICATION_RULES, stage))
+    rows.extend(_duplicate_rows(applications_df, duplicate_report, duplicate_metadata, stage, ssn_column))
+    rows.extend(_rule_rows(spending_df, spending_flags, schema.SPENDING_RULES, stage))
+
+    report = pd.DataFrame(rows, columns=["stage", "issue_group", "rule_id", "field_path", "description", "count", "percent", "severity", "example_application_ids"])
+    if report.empty:
+        report["value_source"] = pd.Series(dtype="string")
+        return report
+
+    catalog = rule_catalog if rule_catalog is not None else schema.build_rule_catalog()
+    report = report.merge(catalog[["stage", "rule_id", "value_source"]].drop_duplicates(), on=["stage", "rule_id"], how="left", validate="many_to_one")
+    report["severity_order"] = report["severity"].map(SEVERITY_ORDER).fillna(99)
+    report = report.sort_values(["stage", "severity_order", "count", "rule_id"], ascending=[True, True, False, True])
+    return report.drop(columns="severity_order").reset_index(drop=True)
+
+
+def _lookup_metric(report: pd.DataFrame, stage: str, rule_id: str) -> tuple[int, float, str]:
+    """Return count, percent, and issue group for a rule from a staged quality report."""
+    row = report.loc[(report["stage"] == stage) & (report["rule_id"] == rule_id)]
     if row.empty:
-        return 0, 0.0
+        return 0, 0.0, ""
     first = row.iloc[0]
-    return int(first["count"]), float(first["percent"])
+    return int(first["count"]), float(first["percent"]), str(first["issue_group"])
 
 
-def build_before_after_comparison(
-    *,
-    pre_report: pd.DataFrame,
-    post_report: pd.DataFrame,
-    duplicate_report: pd.DataFrame,
-    duplicate_metadata: pd.DataFrame,
-    total_records: int,
-    canonical_count: int,
-) -> pd.DataFrame:
-    """Create a compact pre-vs-post remediation comparison table."""
-    metric_map = [
-        ("Missing required applicant fields", "R_APP_002"),
-        ("Missing processing timestamp", "R_APP_001"),
-        ("Blank email", "R_APP_004"),
-        ("Invalid email format", "R_APP_005"),
-        ("Gender requires normalization", "R_APP_006"),
-        ("DOB non-ISO format", "R_APP_008"),
-        ("Annual income type/coercion issue", "R_APP_010"),
-        ("Annual salary field drift", "R_APP_011"),
-        ("Negative credit history months", "R_APP_012"),
-        ("Negative savings balance", "R_APP_013"),
-        ("Debt-to-income out of range", "R_APP_014"),
-        ("Approved with credit history <6 months", "R_APP_018"),
-        ("Spending missing category", "R_SPN_001"),
-        ("Spending amount non-numeric", "R_SPN_002"),
-        ("Spending amount negative", "R_SPN_003"),
+def build_before_after_comparison(*, quality_report: pd.DataFrame, duplicate_report: pd.DataFrame, duplicate_metadata: pd.DataFrame, total_records: int, canonical_count: int) -> pd.DataFrame:
+    """Build a compact before-vs-after remediation evidence table."""
+    metrics = [
+        ("R_APP_002", "Missing required applicant fields"),
+        ("R_APP_005", "Invalid email format"),
+        ("R_APP_006", "Gender requires standardisation"),
+        ("R_APP_008", "DOB not in ISO format"),
+        ("R_APP_009", "DOB ambiguity"),
+        ("R_APP_010", "Annual income coercion issue"),
+        ("R_APP_011", "Annual salary field drift"),
+        ("R_APP_012", "Negative credit history months"),
+        ("R_APP_013", "Negative savings balance"),
+        ("R_APP_014", "Debt-to-income out of range"),
+        ("R_APP_018", "Approved with credit history under 6 months"),
+        ("R_SPN_001", "Spending missing category"),
+        ("R_SPN_002", "Spending amount invalid"),
+        ("R_SPN_003", "Spending amount negative"),
     ]
 
     rows: list[dict[str, Any]] = []
-    for metric, rule_id in metric_map:
-        pre_count, pre_percent = _lookup_metric(pre_report, rule_id)
-        post_count, post_percent = _lookup_metric(post_report, rule_id)
+    for rule_id, metric_label in metrics:
+        pre_count, pre_percent, issue_group = _lookup_metric(quality_report, "pre", rule_id)
+        post_count, post_percent, issue_group_post = _lookup_metric(quality_report, "post", rule_id)
         rows.append(
             {
-                "metric": metric,
+                "issue_group": issue_group or issue_group_post,
                 "rule_id": rule_id,
+                "metric_label": metric_label,
                 "pre_count": pre_count,
-                "pre_percent": round(pre_percent, 2),
                 "post_count": post_count,
-                "post_percent": round(post_percent, 2),
                 "delta_count": post_count - pre_count,
+                "pre_percent": round(pre_percent, 2),
+                "post_percent": round(post_percent, 2),
                 "delta_percent": round(post_percent - pre_percent, 2),
             }
         )
 
     duplicate_rows = int(duplicate_metadata["is_duplicate_id"].fillna(False).astype(bool).sum())
-    conflict_ids = int(
-        duplicate_report.loc[duplicate_report["classification"] == "conflict", "application_id"].nunique()
-    )
-    duplicate_percent = (duplicate_rows / total_records) * 100 if total_records else 0.0
-    conflict_percent = (conflict_ids / total_records) * 100 if total_records else 0.0
-
-    rows.extend(
-        [
-            {
-                "metric": "Duplicate application_id rows",
-                "rule_id": "R_DUP_001",
-                "pre_count": duplicate_rows,
-                "pre_percent": round(duplicate_percent, 2),
-                "post_count": duplicate_rows,
-                "post_percent": round(duplicate_percent, 2),
-                "delta_count": 0,
-                "delta_percent": 0.0,
-            },
-            {
-                "metric": "Duplicate conflict IDs",
-                "rule_id": "R_DUP_CONFLICT",
-                "pre_count": conflict_ids,
-                "pre_percent": round(conflict_percent, 2),
-                "post_count": conflict_ids,
-                "post_percent": round(conflict_percent, 2),
-                "delta_count": 0,
-                "delta_percent": 0.0,
-            },
-            {
-                "metric": "Canonical rows selected for analysis",
-                "rule_id": "R_DUP_CANONICAL",
-                "pre_count": total_records,
-                "pre_percent": 100.0 if total_records else 0.0,
-                "post_count": canonical_count,
-                "post_percent": round((canonical_count / total_records) * 100 if total_records else 0.0, 2),
-                "delta_count": canonical_count - total_records,
-                "delta_percent": round(
-                    ((canonical_count / total_records) * 100 - 100.0) if total_records else 0.0,
-                    2,
-                ),
-            },
-        ]
-    )
-
+    conflict_ids = int(duplicate_report.loc[duplicate_report["classification"] == "conflict", "application_id"].nunique())
+    rows.extend([
+        {"issue_group": "Uniqueness", "rule_id": "R_DUP_001", "metric_label": "Duplicate application_id rows", "pre_count": duplicate_rows, "post_count": duplicate_rows, "delta_count": 0, "pre_percent": round((duplicate_rows / total_records) * 100 if total_records else 0.0, 2), "post_percent": round((duplicate_rows / total_records) * 100 if total_records else 0.0, 2), "delta_percent": 0.0},
+        {"issue_group": "Uniqueness", "rule_id": "R_DUP_CONFLICT", "metric_label": "Duplicate conflict IDs", "pre_count": conflict_ids, "post_count": conflict_ids, "delta_count": 0, "pre_percent": round((conflict_ids / total_records) * 100 if total_records else 0.0, 2), "post_percent": round((conflict_ids / total_records) * 100 if total_records else 0.0, 2), "delta_percent": 0.0},
+        {"issue_group": "Remediation", "rule_id": "R_DUP_CANONICAL", "metric_label": "Canonical rows retained for analysis", "pre_count": total_records, "post_count": canonical_count, "delta_count": canonical_count - total_records, "pre_percent": 100.0 if total_records else 0.0, "post_percent": round((canonical_count / total_records) * 100 if total_records else 0.0, 2), "delta_percent": round(((canonical_count / total_records) * 100 - 100.0) if total_records else 0.0, 2)},
+    ])
     return pd.DataFrame(rows)
