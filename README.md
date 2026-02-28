@@ -1,4 +1,43 @@
-# DEGO Project - Team 3
+# NovaCred — Credit Application Governance Analysis
+
+> DEGO 2606 Group Project – Credit Application Governance Analysis  
+> MSc Business Analytics | Nova SBE | 2025/26 T3
+
+---
+
+## 👥 Team
+
+| Name | Role | GitHub |
+|------|------|--------|
+| Connor Brown | Data Engineer | @Connor144-iv |
+| Madalena Rocha | Data Scientist | @msusanrocha |
+| António Santos | Governance Officer | @antonioncmsantos-hue |
+| Nora Puchert | Product Lead | @npu99 |
+
+---
+
+## 📌 Executive Summary
+
+---
+
+## 📁 Repository Structure
+
+```
+DEGO_PROJECT_GROUP03/
+├── README.md                   
+├── data/                       ← Dataset files
+├── notebooks/
+│   ├── 01-data-quality.ipynb   ← Data loading, cleaning, profiling
+│   ├── 02-bias-analysis.ipynb  ← Fairness metrics, DI ratio, proxy analysis
+│   └── 03-privacy-demo.ipynb   ← PII inventory, pseudonymization, GDPR mapping
+├── src/
+│   └── fairness_utils.py       ← 
+└── presentation/               ← Video link
+```
+
+---
+
+## 🔍 Data Quality Findings
 
 ## Project Objective
 This pipeline is intentionally scoped to three objectives:
@@ -76,3 +115,25 @@ python -m jupyter nbconvert --to notebook --execute notebooks/01-data-quality.ip
 - `src/clean.py`: deterministic cleaning and standardisation.
 - `src/privacy.py`: redaction, pseudonymisation, and PII-safe outputs.
 - `notebooks/01-data-quality.ipynb`: orchestration notebook.
+
+---
+
+## ⚖️ Bias Detection & Fairness
+
+---
+
+## 🔐 Privacy & Governance
+
+---
+
+## 🛡️ Governance Recommendations
+
+---
+
+## 🎥 Presentation
+
+Video available at:
+
+--- 
+
+
