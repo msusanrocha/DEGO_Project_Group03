@@ -1,0 +1,26 @@
+field_name,pii_class,present_in_raw,present_in_curated,present_in_analysis,notes
+age_band,Non-PII,False,False,True,Privacy-preserving derived age representation.
+decision.approved_amount,Non-PII,True,True,True,Required when loan_approved=True.
+decision.interest_rate,Non-PII,True,True,True,Required when loan_approved=True.
+decision.loan_approved,Non-PII,True,True,True,Decision flag.
+decision.rejection_reason,Non-PII,True,True,True,Required when loan_approved=False.
+financials.annual_income,Non-PII,True,True,True,May drift into annual_salary.
+financials.annual_salary,Non-PII,True,True,True,Field drift variant for annual_income.
+financials.credit_history_months,Non-PII,True,True,True,Must be >= 0.
+financials.debt_to_income,Non-PII,True,True,True,"Expected range [0, 1]."
+financials.savings_balance,Non-PII,True,True,True,Must be >= 0.
+loan_purpose,Non-PII,True,True,True,Optional top-level context field.
+notes,Non-PII,True,True,True,Optional operational notes.
+processing_timestamp,Non-PII,True,True,True,Processing event time used for canonical selection.
+pseudo_id_source,Non-PII,False,False,True,Indicates whether SSN or fallback source was used.
+spending_behavior[].amount,Non-PII,True,True,False,Spending amount must be >= 0.
+spending_behavior[].category,Non-PII,True,True,False,Spending category label.
+applicant_info.date_of_birth,PII,True,True,False,Source supports multiple date formats.
+applicant_info.email,PII,True,True,False,Direct identifier and contact field.
+applicant_info.full_name,PII,True,True,False,Direct identifier.
+applicant_info.ip_address,PII,True,True,False,Device/network identifier.
+applicant_info.ssn,PII,True,True,False,National identifier.
+_id,Quasi-PII,True,True,True,External application identifier.
+applicant_info.gender,Quasi-PII,True,True,True,Allowed source variants: Male/Female/M/F.
+applicant_info.zip_code,Quasi-PII,True,True,True,Location quasi-identifier.
+applicant_pseudo_id,Quasi-PII,False,False,True,Salted SHA-256 pseudonym used for analysis linkage.
