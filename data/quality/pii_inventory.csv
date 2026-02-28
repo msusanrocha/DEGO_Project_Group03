@@ -1,0 +1,11 @@
+field_path,classification,present_in_raw,present_in_curated,present_in_analysis
+age_band,Non-PII,False,False,True
+applicant_info.date_of_birth,PII,True,True,False
+applicant_info.email,PII,True,True,False
+applicant_info.full_name,PII,True,True,False
+applicant_info.gender,Quasi-PII,True,True,True
+applicant_info.ip_address,PII,True,True,False
+applicant_info.ssn,PII,True,True,False
+applicant_info.zip_code,Quasi-PII,True,True,True
+applicant_pseudo_id,Quasi-PII,False,False,True
+application_id,Quasi-PII,True,True,True

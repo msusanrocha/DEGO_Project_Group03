@@ -6,7 +6,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from . import config, schema
+from . import config
 
 
 def _mask_text(value: Any, replacement: str = "[REDACTED]") -> Any:
@@ -81,19 +81,13 @@ def _redact_by_key(key: str, value: Any) -> Any:
 
 
 def redact_record(record: dict[str, Any]) -> dict[str, Any]:
-    """Redact PII values in an arbitrary nested record for safe printing/logging."""
+    """Redact PII values in a nested record for safe printing and logging."""
     redacted: dict[str, Any] = {}
     for key, value in record.items():
         if isinstance(value, dict):
             redacted[key] = redact_record(value)
         elif isinstance(value, list):
-            safe_items = []
-            for item in value:
-                if isinstance(item, dict):
-                    safe_items.append(redact_record(item))
-                else:
-                    safe_items.append(item)
-            redacted[key] = safe_items
+            redacted[key] = [redact_record(item) if isinstance(item, dict) else item for item in value]
         else:
             redacted[key] = _redact_by_key(key, value)
     return redacted
@@ -114,7 +108,7 @@ def safe_preview_df(df: pd.DataFrame, pii_columns: list[str], n: int = 5) -> pd.
         elif "date_of_birth" in column:
             preview[column] = preview[column].apply(_mask_dob)
         elif "full_name" in column:
-            preview[column] = preview[column].apply(lambda v: _mask_text(v, "[REDACTED_NAME]"))
+            preview[column] = preview[column].apply(lambda value: _mask_text(value, "[REDACTED_NAME]"))
     return preview
 
 
@@ -130,17 +124,14 @@ def _is_blank(value: Any) -> bool:
 
 
 def _stable_hash(seed: str, salt: str) -> str:
-    """Create a deterministic SHA-256 hash from salt and seed."""
+    """Create a deterministic SHA-256 hash from a salt and seed."""
     return hashlib.sha256(f"{salt}|{seed}".encode("utf-8")).hexdigest()
 
 
-def assign_applicant_pseudo_id(
-    df: pd.DataFrame, salt: str = config.HASH_SALT
-) -> tuple[pd.Series, pd.Series]:
-    """Generate deterministic applicant pseudonyms and record source strategy."""
+def assign_applicant_pseudo_id(df: pd.DataFrame, salt: str = config.HASH_SALT) -> tuple[pd.Series, pd.Series]:
+    """Generate deterministic applicant pseudonyms and capture the source strategy used."""
     pseudo_ids: list[str] = []
     pseudo_sources: list[str] = []
-
     for _, row in df.iterrows():
         ssn = row.get("raw_applicant_ssn")
         email = row.get("raw_applicant_email")
@@ -157,10 +148,7 @@ def assign_applicant_pseudo_id(
             seed = f"email:{str(email).strip().lower()}"
             source = "email_fallback"
         elif not (_is_blank(full_name) and _is_blank(dob) and _is_blank(zip_code)):
-            seed = (
-                f"name_dob_zip:{str(full_name).strip().lower()}|"
-                f"{str(dob).strip()}|{str(zip_code).strip()}"
-            )
+            seed = f"name_dob_zip:{str(full_name).strip().lower()}|{str(dob).strip()}|{str(zip_code).strip()}"
             source = "name_dob_zip_fallback"
         else:
             seed = f"application:{application_id}|row:{application_row_id}"
@@ -179,12 +167,11 @@ def _build_age_band(clean_dob: pd.Series) -> pd.Series:
     age_years = (reference - dob).dt.days / 365.25
     bins = [0, 25, 35, 45, 55, 65, np.inf]
     labels = ["<25", "25-34", "35-44", "45-54", "55-64", "65+"]
-    age_band = pd.cut(age_years, bins=bins, labels=labels, right=False)
-    return age_band.astype("string")
+    return pd.cut(age_years, bins=bins, labels=labels, right=False).astype("string")
 
 
 def build_analysis_dataset(curated_full_df: pd.DataFrame) -> pd.DataFrame:
-    """Create one-row-per-canonical-application PII-safe analysis dataframe."""
+    """Create a one-row-per-canonical-application PII-safe analysis dataset."""
     analysis = curated_full_df.loc[curated_full_df["is_canonical_for_analysis"]].copy()
     analysis = analysis.sort_values(["application_id", "application_row_id"]).reset_index(drop=True)
 
@@ -196,20 +183,10 @@ def build_analysis_dataset(curated_full_df: pd.DataFrame) -> pd.DataFrame:
     analysis["age_band"] = _build_age_band(analysis["clean_date_of_birth"])
     analysis["age_band_missing_flag"] = analysis["age_band"].isna()
 
-    direct_pii_cols = {
-        "raw_applicant_full_name",
-        "raw_applicant_email",
-        "raw_applicant_ssn",
-        "raw_applicant_ip_address",
-        "raw_applicant_date_of_birth",
-        "clean_email",
-        "clean_date_of_birth",
-    }
-    existing_drop = [col for col in direct_pii_cols if col in analysis.columns]
-    analysis = analysis.drop(columns=existing_drop)
+    analysis = analysis.drop(columns=[column for column in config.DIRECT_PII_COLUMNS if column in analysis.columns])
 
-    # Keep analysis outputs minimal to avoid leakage from audit/remediation fields
-    # and to preserve separation of concerns between modelling and data operations.
+    # Keep the analysis output narrow so audit or remediation fields do not leak
+    # into downstream modelling logic or inflate the analytical surface area.
     analysis_columns = [
         "application_id",
         "applicant_pseudo_id",
@@ -228,89 +205,25 @@ def build_analysis_dataset(curated_full_df: pd.DataFrame) -> pd.DataFrame:
         "clean_approved_amount",
         "clean_rejection_reason",
     ]
-    existing_analysis_columns = [col for col in analysis_columns if col in analysis.columns]
-    analysis = analysis[existing_analysis_columns].copy()
-
-    # Enforce one canonical row per application_id for safe analysis output.
+    analysis = analysis[[column for column in analysis_columns if column in analysis.columns]].copy()
     analysis = analysis.drop_duplicates(subset=["application_id"], keep="first")
     return analysis.reset_index(drop=True)
 
 
-def generate_pii_inventory(
-    *,
-    curated_full_df: pd.DataFrame,
-    analysis_df: pd.DataFrame,
-    spending_df: pd.DataFrame,
-) -> pd.DataFrame:
-    """
-    Build PII inventory by field path and dataset presence:
-    - present_in uses pipe-delimited values from {raw, curated, analysis}.
-    """
-    field_to_columns: dict[str, list[str]] = {}
-    field_to_meta: dict[str, dict[str, str]] = {}
-    for entry in schema.APPLICATION_SCHEMA + schema.SPENDING_SCHEMA:
-        field_path = str(entry["field_path"])
-        field_to_columns.setdefault(field_path, []).append(str(entry["column"]))
-        classification = str(entry["classification"])
-        if classification not in {"PII", "Quasi-PII", "Non-PII"}:
-            classification = "Quasi-PII"
-        field_to_meta[field_path] = {
-            "classification": classification,
-            "notes": str(entry.get("notes", "")),
-        }
-
-    derived_fields = {
-        "applicant_pseudo_id": {
-            "columns": ["applicant_pseudo_id"],
-            "classification": "Quasi-PII",
-            "notes": "Salted SHA-256 pseudonym used for analysis linkage.",
-        },
-        "pseudo_id_source": {
-            "columns": ["pseudo_id_source"],
-            "classification": "Non-PII",
-            "notes": "Indicates whether SSN or fallback source was used.",
-        },
-        "age_band": {
-            "columns": ["age_band"],
-            "classification": "Non-PII",
-            "notes": "Privacy-preserving derived age representation.",
-        },
-    }
-
-    rows: list[dict[str, str]] = []
-    curated_cols = set(curated_full_df.columns)
-    analysis_cols = set(analysis_df.columns)
-    spending_cols = set(spending_df.columns)
-
-    for field_path, columns in field_to_columns.items():
-        present = ["raw"]
-        if any(col in curated_cols or col in spending_cols for col in columns):
-            present.append("curated")
-        if any(col in analysis_cols for col in columns):
-            present.append("analysis")
-        meta = field_to_meta[field_path]
-        rows.append(
-            {
-                "field_path": field_path,
-                "classification": meta["classification"],
-                "notes/purpose": meta["notes"],
-                "present_in": "|".join(present),
-            }
-        )
-
-    for field_path, meta in derived_fields.items():
-        present: list[str] = []
-        if any(col in curated_cols for col in meta["columns"]):
-            present.append("curated")
-        if any(col in analysis_cols for col in meta["columns"]):
-            present.append("analysis")
-        rows.append(
-            {
-                "field_path": field_path,
-                "classification": meta["classification"],
-                "notes/purpose": meta["notes"],
-                "present_in": "|".join(present),
-            }
-        )
-
+def generate_pii_inventory(*, curated_full_df: pd.DataFrame, analysis_df: pd.DataFrame) -> pd.DataFrame:
+    """Build a minimal PII inventory for raw, curated, and analysis datasets."""
+    curated_columns = set(curated_full_df.columns)
+    analysis_columns = set(analysis_df.columns)
+    rows = [
+        {"field_path": "application_id", "classification": "Quasi-PII", "present_in_raw": True, "present_in_curated": "application_id" in curated_columns, "present_in_analysis": "application_id" in analysis_columns},
+        {"field_path": "applicant_info.full_name", "classification": "PII", "present_in_raw": True, "present_in_curated": "raw_applicant_full_name" in curated_columns, "present_in_analysis": False},
+        {"field_path": "applicant_info.email", "classification": "PII", "present_in_raw": True, "present_in_curated": "raw_applicant_email" in curated_columns, "present_in_analysis": False},
+        {"field_path": "applicant_info.ssn", "classification": "PII", "present_in_raw": True, "present_in_curated": "raw_applicant_ssn" in curated_columns, "present_in_analysis": False},
+        {"field_path": "applicant_info.ip_address", "classification": "PII", "present_in_raw": True, "present_in_curated": "raw_applicant_ip_address" in curated_columns, "present_in_analysis": False},
+        {"field_path": "applicant_info.date_of_birth", "classification": "PII", "present_in_raw": True, "present_in_curated": "raw_applicant_date_of_birth" in curated_columns, "present_in_analysis": False},
+        {"field_path": "applicant_info.gender", "classification": "Quasi-PII", "present_in_raw": True, "present_in_curated": "clean_gender" in curated_columns, "present_in_analysis": "clean_gender" in analysis_columns},
+        {"field_path": "applicant_info.zip_code", "classification": "Quasi-PII", "present_in_raw": True, "present_in_curated": "clean_zip_code" in curated_columns, "present_in_analysis": "clean_zip_code" in analysis_columns},
+        {"field_path": "applicant_pseudo_id", "classification": "Quasi-PII", "present_in_raw": False, "present_in_curated": False, "present_in_analysis": "applicant_pseudo_id" in analysis_columns},
+        {"field_path": "age_band", "classification": "Non-PII", "present_in_raw": False, "present_in_curated": False, "present_in_analysis": "age_band" in analysis_columns},
+    ]
     return pd.DataFrame(rows).sort_values("field_path").reset_index(drop=True)
