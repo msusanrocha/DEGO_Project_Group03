@@ -1,0 +1,4 @@
+pseudo_id_source,count,pct
+ssn,495,99.0
+name_dob_zip_fallback,4,0.8
+email_fallback,1,0.2

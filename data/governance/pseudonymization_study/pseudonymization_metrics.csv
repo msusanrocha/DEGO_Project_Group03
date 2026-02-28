@@ -1,0 +1,2 @@
+analysis_rows,analysis_cols,missing_applicant_pseudo_id,unique_applicant_pseudo_id,duplicate_applicant_pseudo_id_count,fallback_used_count,fallback_used_rate_pct,curated_canonical_rate_pct
+500,16,0,498,2,5,1.0,99.6
