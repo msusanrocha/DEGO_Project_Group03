@@ -1,0 +1,16 @@
+application_id
+applicant_pseudo_id
+pseudo_id_source
+pseudo_id_fallback_used_flag
+age_band
+age_band_missing_flag
+clean_gender
+clean_zip_code
+clean_annual_income
+clean_credit_history_months
+clean_debt_to_income
+clean_savings_balance
+clean_loan_approved
+clean_interest_rate
+clean_approved_amount
+clean_rejection_reason

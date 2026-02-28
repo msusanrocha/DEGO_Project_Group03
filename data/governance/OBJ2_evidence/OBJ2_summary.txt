@@ -1,0 +1,13 @@
+=== OBJ2 Evidence Summary (A + B) ===
+ANALYSIS  rows=500 cols=16
+CURATED   rows=502 cols=14
+
+A) applications_analysis.csv checks
+Required fields present: {'applicant_pseudo_id': True, 'pseudo_id_source': True, 'pseudo_id_fallback_used_flag': True}
+Direct PII columns present in ANALYSIS (should be []): []
+
+B) applications_curated_full.csv checks
+Direct PII columns present in CURATED_FULL (should be non-empty): ['raw_applicant_full_name', 'raw_applicant_email', 'raw_applicant_ssn', 'raw_applicant_ip_address', 'raw_applicant_date_of_birth', 'clean_email', 'clean_date_of_birth']
+Non-null counts for PII cols (CURATED_FULL): {'raw_applicant_full_name': 502, 'raw_applicant_email': 495, 'raw_applicant_ssn': 497, 'raw_applicant_ip_address': 497, 'raw_applicant_date_of_birth': 497, 'clean_email': 495, 'clean_date_of_birth': 497}
+
+Curated preview columns used (redacted): ['application_row_id', 'application_id', 'raw_applicant_full_name', 'raw_applicant_email', 'raw_applicant_ssn', 'raw_applicant_ip_address', 'raw_applicant_date_of_birth', 'raw_applicant_zip_code', 'clean_email', 'clean_gender', 'clean_date_of_birth', 'clean_zip_code', 'clean_annual_income', 'is_canonical_for_analysis']
