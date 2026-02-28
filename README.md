@@ -15,7 +15,7 @@ The deliverable keeps the two downstream analysis tables that later notebooks de
 - `applications_curated_full.csv`
   - Restricted audit dataset.
   - One row per raw record.
-  - Contains raw columns, clean columns, a minimal remediation flag set, and minimal duplicate metadata.
+  - Contains raw columns, clean columns, a  remediation flag set, and duplicate metadata.
 - `applications_analysis.csv`
   - PII-safe analysis dataset.
   - One row per canonical application.
