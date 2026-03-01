@@ -1,0 +1,2 @@
+n_duplicate_ids,n_exact,n_versioned,n_conflicting,canonical_rule_used,notes
+2,0,1,1,"missing_or_unparseable_timestamp_fallback_max_row_id","1 conflicting duplicate (app_001) with differences in sensitive fields (SSN, IP, DOB, ZIP, gender). Canonical selection used fallback due to missing/unparseable processing_timestamp, indicating an auditability/provenance gap and requiring conflict escalation + fairness review."
