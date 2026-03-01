@@ -305,6 +305,34 @@ def rejection_reason_by_gender(df: pd.DataFrame) -> pd.DataFrame | None:
     return tbl
 # Important for checking if proxy variables are being applied differently between genders
 
+def rejection_reason_chi2(df: pd.DataFrame) -> dict[str, Any] | None:
+    """
+    Chi-squared test of independence between rejection reason and gender,
+    restricted to the top 5 most frequent rejection reasons.
+    """
+    gdf = gender_subset(df)
+    rejected = gdf[gdf["approved"] == 0]
+    if "clean_rejection_reason" not in rejected.columns or rejected.empty:
+        return None
+
+    top5 = (rejected["clean_rejection_reason"]
+            .value_counts()
+            .head(5)
+            .index.tolist())
+
+    filtered = rejected[rejected["clean_rejection_reason"].isin(top5)]
+    ct = pd.crosstab(filtered["clean_rejection_reason"], filtered["clean_gender"])
+
+    chi2, p, dof, _ = stats.chi2_contingency(ct)
+    return {
+        "top5_reasons":      top5,
+        "chi2":              round(chi2, 4),
+        "p_value":           round(p, 6),
+        "dof":               dof,
+        "significant_at_05": bool(p < 0.05),
+        "crosstab":          ct,
+    }
+
 # ── Summary table ─────────────────────────────────────────────────────────────
 
 def build_fairness_summary(
