@@ -70,13 +70,15 @@ We used `data/quality/duplicate_id_report.csv` as the identity resolution log, w
 - the selected canonical row and the selection reason,
 - an “example differences” field highlighting which raw fields differed.
 
-### Step B — Apply deterministic canonical selection (and record why)
+### Step B — Apply deterministic canonical selection
 
 The log shows the canonical selection rule used:
 
 `missing_or_unparseable_timestamp_fallback_max_row_id`
 
 This indicates the intended time-based selection could not be applied consistently because the required timestamp was missing or unparseable, so a deterministic fallback (max row_id) was used.
+
+**Governance requirement:** the timestamp-based rule is the intended primary rule. Any fallback selection must be treated as an **exception**, recorded in an incident log, and linked to an upstream remediation ticket (instrumentation + data contract enforcement).
 
 ### Step C — Governance + fairness linkage check (minimum viable control)
 
@@ -85,7 +87,7 @@ We merged duplicate flags into `applications_analysis.csv` and produced governan
 - duplicate/conflict rate by `clean_gender`
 - duplicate/conflict rate by `age_band`
 
-This is **not** a statistical fairness test (N is very small here). It is a **process control**: because identity resolution choices can indirectly affect downstream fairness metrics, governance requires visibility into whether duplicates/conflicts concentrate in specific groups and whether missingness undermines fairness monitoring.
+**This is not a fairness outcome test.** With N=2 duplicated IDs, these checks are a **process guardrail**: we flag whether duplication/conflict events concentrate in specific slices and trigger review, rather than infer discrimination.
 
 ---
 
@@ -115,7 +117,9 @@ From the generated checks:
 - The **conflict duplicate** appears under **missing** categories for gender and age_band.
 - With N=2 this is not evidence of discrimination, but it indicates:
   - missingness in key fields is intertwined with identity/provenance issues,
-  - governance should require stronger validation and upstream capture of demographics/proxies used for fairness reporting (to avoid fairness “blind spots”).
+  - fairness monitoring can develop **blind spots** if protected/proxy attributes are missing or inconsistently captured.
+
+**Governance action:** require upstream validation or explicit “unknown/unspecified” handling for fairness-relevant fields (to avoid silent exclusion from group slices).
 
 ---
 
@@ -141,50 +145,47 @@ If `classification == "conflict"`:
 
 ### How this connects Governance Officer ↔ Data Scientist
 
-- The **Governance Officer** ensures identity resolution is auditable (rules + logging + escalation) and monitors whether data controls may create uneven impacts across groups (**fairness-by-process**).
+- The **Governance Officer** ensures identity resolution is auditable (rules + logging + escalation) and monitors whether upstream controls may create uneven impacts across groups (**fairness-by-process**).
 - The **Data Scientist** evaluates fairness on outcomes/models (**fairness-by-outcome**).
-  These are complementary: fairness conclusions are only reliable if upstream controls (like deduplication) do not distort group slices.
+
+These are complementary: fairness conclusions are only reliable if upstream controls (like deduplication) do not distort group slices or create missingness-driven blind spots.
 
 ---
 
-## 6) GDPR mapping
+## 6) GDPR + EU AI Act mapping
+
+### GDPR relevance
 
 This work supports GDPR principles and obligations:
 
-- **Principles (lawfulness, fairness, transparency; purpose limitation; data minimisation; accuracy; integrity/confidentiality; accountability)**  
-  Identity resolution reduces inconsistent “truths” and improves explainability of the dataset used for decisions/analysis.  
-  GDPR Article 5: https://gdpr-info.eu/art-5-gdpr/
+- **Principles & accountability (Art. 5):** identity resolution reduces inconsistent “truths” and improves explainability of the dataset used for analysis and decision-support.  
+  https://gdpr-info.eu/art-5-gdpr/
+- **Security of processing (Art. 32):** layered access (raw/curated vs analysis) and restricted handling of sensitive fields supports confidentiality and integrity.  
+  https://gdpr-info.eu/art-32-gdpr/
+- **DPIA relevance (Art. 35, contextual):** credit decisioning/profiling-like processing can trigger DPIA considerations; governance evidence and decision logs support DPIA workstreams.  
+  https://gdpr-info.eu/art-35-gdpr/
 
-- **Security of processing (technical and organisational measures; pseudonymisation as a measure where appropriate)**  
-  This governance approach assumes layered access (raw/curated vs analysis) and reinforces controlled handling of sensitive fields.  
-  GDPR Article 32: https://gdpr-info.eu/art-32-gdpr/
-
-- **DPIA relevance (contextual)**  
-  Credit decisioning and profiling-like processing can trigger DPIA considerations. Governance documentation and evidence logs support DPIA workstreams.  
-  GDPR Article 35: https://gdpr-info.eu/art-35-gdpr/
-
----
-
-## 7) EU AI Act positioning
+### EU AI Act relevance (high-risk credit decisioning)
 
 If NovaCred’s credit decisioning is implemented with an AI system used to **evaluate creditworthiness or establish credit scores**, it is typically treated as **high-risk** under **Annex III (access to essential private services)**.
 
-AI Act (Regulation (EU) 2024/1689): https://eur-lex.europa.eu/eli/reg/2024/1689/oj/eng
+AI Act (Regulation (EU) 2024/1689):  
+https://eur-lex.europa.eu/eli/reg/2024/1689/oj/eng
 
 The requirements most directly connected to this work include:
 
-- **Risk management (Article 9)** — identity resolution and provenance gaps are lifecycle risks to manage.
-- **Data governance (Article 10)** — data preparation must be appropriate, controlled, and documented.
-- **Record-keeping/logging (Article 12)** — missing/unparseable timestamps highlight why logging is mandatory.
-- **Transparency to deployers (Article 13)** — governance evidence supports transparency documentation.
-- **Human oversight (Article 14)** — conflict duplicates require escalation and review.
-- **Accuracy/robustness (Article 15)** — deterministic rules + exception tracking strengthen robustness.
+- **Risk management (Art. 9):** identity resolution and provenance gaps are lifecycle risks to manage.
+- **Data governance (Art. 10):** data preparation must be appropriate, controlled, and documented (duplicates/conflicts are explicit governance issues).
+- **Record-keeping/logging (Art. 12):** missing/unparseable timestamps explain why robust logging is mandatory.
+- **Transparency (Art. 13):** governance evidence supports transparency documentation for deployers.
+- **Human oversight (Art. 14):** conflict duplicates require escalation and review.
+- **Accuracy/robustness (Art. 15):** deterministic rules + exception tracking strengthen robustness.
 
 (Each article is within the same official text linked above.)
 
 ---
 
-## 8) How to reproduce
+## 7) How to reproduce
 
 1. Open and run:
    - `data/governance/identity_resolution_policy/identity_resolution_governance.ipynb`
@@ -198,7 +199,7 @@ The requirements most directly connected to this work include:
 
 ---
 
-## 9) Limitations
+## 8) Limitations
 
-- The number of duplicated IDs is very small (**N=2**), so the group checks are **governance controls**, not statistically meaningful bias findings.
-- The observed fallback selection indicates a provenance gap: the correct response is **upstream instrumentation + required timestamps + logs**, not ad-hoc downstream fixes.
+- The number of duplicated IDs is very small (**N=2**), so the group checks are **governance guardrails**, not statistically meaningful bias findings.
+- The observed fallback selection indicates a provenance gap: the correct response is **upstream instrumentation + required timestamps + exception logs**, not ad-hoc downstream fixes.
