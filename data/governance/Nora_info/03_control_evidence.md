@@ -46,7 +46,7 @@ From `pre_post_comparison.csv`:
 
 ---
 
-## Residual issues (what remains and how we govern it)
+## Residual issues
 
 We do **not** aim for “0 remaining issues at any cost”. Instead, residual issues are explicitly documented and mapped to controls (upstream fixes, downstream mitigations, monitoring).
 
@@ -65,7 +65,7 @@ We do **not** aim for “0 remaining issues at any cost”. Instead, residual is
 
 ## Compliance mapping
 
-### GDPR relevance (data protection + accountability)
+### GDPR relevance
 
 Our controls support GDPR principles by improving data accuracy, limiting error propagation, and documenting governance decisions:
 
@@ -78,7 +78,7 @@ Our controls support GDPR principles by improving data accuracy, limiting error 
 
 **Governance note:** `R_APP_001` (missing processing timestamps) is a governance gap because it undermines traceability—this is not only “data quality”; it affects demonstrability and accountability.
 
-### EU AI Act relevance (credit scoring / creditworthiness = high-risk)
+### EU AI Act relevance
 
 Systems used to evaluate creditworthiness or establish credit scores are listed as **high-risk** (Annex III).  
 https://eur-lex.europa.eu/eli/reg/2024/1689/oj
