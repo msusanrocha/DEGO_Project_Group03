@@ -1,0 +1,4 @@
+clean_gender,n_total,n_duplicated,n_conflict,dup_rate,conflict_rate
+Female,250,0,0,0.0,0.0
+Male,247,1,0,0.004048582995951417,0.0
+missing,3,1,1,0.3333333333333333,0.3333333333333333

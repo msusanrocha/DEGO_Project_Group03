@@ -1,0 +1,27 @@
+rule_id,pre_value_source,pre_count,pre_percent,post_count,post_percent,post_value_source,issue_group,field_path,description,severity,delta_count,delta_pp
+R_APP_001,raw,440.0,87.65,440,87.65,clean,Completeness,processing_timestamp,Missing or blank processing timestamp.,high,0.0,0.0
+R_APP_002,raw,8.0,1.59,8,1.59,derived,Completeness,applicant_info.*,One or more required applicant fields missing or blank.,high,0.0,0.0
+R_APP_003,raw,5.0,1.0,5,1.0,raw,Completeness,applicant_info.ssn|applicant_info.ip_address,Both SSN and IP address missing/blank.,high,0.0,0.0
+R_APP_004,raw,7.0,1.39,7,1.39,clean,Completeness,applicant_info.email,Email missing or blank.,medium,0.0,0.0
+R_APP_005,raw,4.0,0.8,4,0.8,clean,Validity,applicant_info.email,Email does not match expected format.,medium,0.0,0.0
+R_APP_006,raw,111.0,22.11,0,0.0,clean,Consistency,applicant_info.gender,Gender remains non-canonical after cleaning.,low,-111.0,-22.11
+R_APP_007,,,,0,0.0,derived,Validity,applicant_info.gender,Gender outside allowed source set.,medium,,
+R_APP_008,raw,157.0,31.27,0,0.0,clean,Consistency,applicant_info.date_of_birth,Clean DOB is non-ISO after parsing.,low,-157.0,-31.27
+R_APP_009,raw,39.0,7.77,39,7.77,derived,Consistency,applicant_info.date_of_birth,DOB format is ambiguous NN/NN/YYYY.,medium,0.0,0.0
+R_APP_010,,,,0,0.0,derived,Consistency,financials.annual_income,Annual income could not be coerced to numeric after cleaning.,low,,
+R_APP_011,raw,5.0,1.0,5,1.0,derived,Consistency,financials.annual_salary,Annual salary provided while annual income missing (field drift).,medium,0.0,0.0
+R_APP_012,raw,2.0,0.4,0,0.0,clean,Validity,financials.credit_history_months,Credit history months is negative.,high,-2.0,-0.4
+R_APP_013,raw,1.0,0.2,0,0.0,clean,Validity,financials.savings_balance,Savings balance is negative.,high,-1.0,-0.2
+R_APP_014,raw,1.0,0.2,0,0.0,clean,Validity,financials.debt_to_income,"Debt-to-income is outside [0, 1].",high,-1.0,-0.2
+R_APP_015,,,,0,0.0,clean,Cross-field logic,decision.loan_approved,Approved loan missing approved_amount and/or interest_rate.,high,,
+R_APP_016,,,,0,0.0,clean,Cross-field logic,decision.rejection_reason,Rejected loan missing rejection_reason.,medium,,
+R_APP_017,raw,11.0,2.19,11,2.19,clean,Plausibility,financials.credit_history_months,Loan approved with zero months of credit history.,medium,0.0,0.0
+R_APP_018,raw,18.0,3.59,17,3.39,clean,Plausibility,financials.credit_history_months,Loan approved with less than 6 months of credit history.,medium,-1.0,-0.19999999999999973
+R_APP_019,raw,497.0,99.0,497,99.0,raw,Synthetic indicator,applicant_info.ip_address,IP address is private-range (likely masked/synthetic).,low,0.0,0.0
+R_DUP_001,metadata,4.0,0.8,4,0.8,metadata,Uniqueness,_id,Rows with duplicated application_id values.,high,0.0,0.0
+R_DUP_002,metadata,2.0,0.4,2,0.4,metadata,Uniqueness,_id,Distinct application_id keys that are duplicated.,high,0.0,0.0
+R_DUP_003,raw,6.0,1.2,6,1.2,raw,Uniqueness,applicant_info.ssn,Rows where SSN repeats across one or more records.,high,0.0,0.0
+R_DUP_004,raw,2.0,0.4,2,0.4,raw,Uniqueness,applicant_info.ssn,Distinct SSN values that appear across different application IDs.,high,0.0,0.0
+R_SPN_001,,,,0,0.0,clean,Completeness,spending_behavior[].category,Spending category missing or blank.,medium,,
+R_SPN_002,,,,0,0.0,derived,Validity,spending_behavior[].amount,Spending amount cannot be parsed as numeric.,high,,
+R_SPN_003,,,,0,0.0,clean,Validity,spending_behavior[].amount,Clean spending amount remains negative after remediation.,high,,

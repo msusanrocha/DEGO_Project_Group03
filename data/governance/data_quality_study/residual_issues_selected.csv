@@ -1,0 +1,9 @@
+rule_id,severity,post_percent,post_count,description
+R_APP_001,high,87.65,440,Missing or blank processing timestamp.
+R_APP_002,high,1.59,8,One or more required applicant fields missing or blank.
+R_APP_003,high,1.0,5,Both SSN and IP address missing/blank.
+R_APP_004,medium,1.39,7,Email missing or blank.
+R_APP_005,medium,0.8,4,Email does not match expected format.
+R_APP_009,medium,7.77,39,DOB format is ambiguous NN/NN/YYYY.
+R_DUP_001,high,0.8,4,Rows with duplicated application_id values.
+R_DUP_003,high,1.2,6,Rows where SSN repeats across one or more records.
