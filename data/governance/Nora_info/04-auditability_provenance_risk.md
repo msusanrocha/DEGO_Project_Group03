@@ -34,7 +34,7 @@ Assess whether the dataset supports **auditability and provenance** (i.e., being
 
 2. **Profiled timestamp fields**
    - For `raw_processing_timestamp` and `clean_processing_timestamp` (in curated):
-     - computed `missing_pct` (including empty strings)
+     - computed `missing_pct` (including empty strings) **as a fraction in [0,1]**
      - checked parse validity (`parse_failed_pct`)
      - flagged “future” timestamps (`future_ts_pct`)
    - For the analysis dataset:
@@ -43,8 +43,8 @@ Assess whether the dataset supports **auditability and provenance** (i.e., being
 3. **Exported evidence + figure**
    - Saved the results table to `provenance_gap_summary_auditability.csv`
    - Created a bar chart (`provenance_gap.png`) comparing:
-     - `% missing timestamp (curated_full)`
-     - `timestamp absent (analysis)` as 100%
+     - `missing_pct` in curated (fraction of records missing timestamps)
+     - `timestamp absent (analysis)` as 1.0 (100%)
 
 ---
 
@@ -55,10 +55,10 @@ From `provenance_gap_summary_auditability.csv`:
 ### 1) Curated layer: timestamps mostly missing
 
 - `applications_curated_full`:
-  - `raw_processing_timestamp`: **440 / 502 missing = 87.65%**
-  - `clean_processing_timestamp`: **440 / 502 missing = 87.65%**
-  - `parse_failed_pct`: **0%** (not a formatting/parsing issue)
-  - `future_ts_count`: **2 / 502 = 0.4%** (integrity anomaly: timestamps beyond “now”)
+  - `raw_processing_timestamp`: **440 / 502 missing = 0.8765**
+  - `clean_processing_timestamp`: **440 / 502 missing = 0.8765**
+  - `parse_failed_pct`: **0.0** (not a formatting/parsing issue)
+  - `future_ts_count`: **2 / 502 = 0.00398** (integrity anomaly: timestamps beyond “now”)
 
 **Interpretation:**  
 For ~9 in 10 records in curated, we cannot reliably answer: _“When was this record processed/cleaned?”_ This is a material audit trail gap.
@@ -90,9 +90,9 @@ Operationally, this affects:
 
 ---
 
-## GDPR connection
+## GDPR + EU AI Act connection
 
-Even though the GDPR does not mandate a specific field like `processing_timestamp`, auditability and traceability are essential to **demonstrate compliance** and manage risk in personal data processing:
+Even though the GDPR does not mandate a specific field like `processing_timestamp`, auditability and traceability are essential to **demonstrate compliance** and manage risk in personal data processing and high-risk AI systems.
 
 ### GDPR Article 5(2) — Accountability
 
@@ -131,33 +131,23 @@ Link: https://gdpr-info.eu/art-32-gdpr/
 
 ---
 
-## Recommendations (controls to close the gap)
+### EU AI Act relevance
 
-1. **Mandatory provenance fields in curated** (Owner: Data Engineering)
-   - Enforce `clean_processing_timestamp` as NOT NULL + must not be in the future.
-   - Add `pipeline_run_id`, `dataset_version`, and `source_snapshot_hash`.
+Systems used to evaluate creditworthiness or establish credit scores are listed as **high-risk** (Annex III).  
+https://eur-lex.europa.eu/eli/reg/2024/1689/oj/eng
 
-2. **Propagate lineage to analysis layer** (Owner: Data Engineering + Data Science)
-   - Include `dataset_version` and `pipeline_run_id` in `applications_analysis.csv` (minimal lineage).
-   - Optional: include `clean_processing_timestamp` for audit-only (not a modeling feature).
+**Connection:** For high-risk systems, weak provenance undermines the ability to prove how data was processed and how model training/decision outcomes can be reconstructed.
 
-3. **Data contract enforcement in CI** (Owner: Data Engineering + Governance)
-   - Fail pipeline if provenance coverage < threshold.
-   - Suggested KPI: `non_null(clean_processing_timestamp) >= 99.5%` (warning) and `< 98%` (block deploy).
+Relevant governance requirements supported by provenance controls include:
 
-4. **Run manifest + access logging** (Owner: Governance / Security)
-   - Store an execution manifest per pipeline run (inputs, outputs, rule versions, counts).
-   - Log access to curated datasets containing PII.
-
----
-
-## How to reproduce
-
-1. Open `auditability_provenance.ipynb`
-2. Run all cells
-3. Outputs (in this folder):
-   - `provenance_gap_summary_auditability.csv`
-   - `provenance_gap.png`
+- **Data governance & data quality (Art. 10):** Requires appropriate data governance and data management practices. Missing timestamps weaken dataset traceability and quality oversight.  
+  https://eur-lex.europa.eu/eli/reg/2024/1689/oj/eng
+- **Record-keeping / logging (Art. 12):** High-risk systems require logging/record-keeping. Timestamp gaps and absence in analysis reduce operational record-keeping strength.  
+  https://eur-lex.europa.eu/eli/reg/2024/1689/oj/eng
+- **Technical documentation (Art. 11):** Documentation is stronger when it can be tied to verifiable pipeline executions (runs, timestamps, dataset snapshots).  
+  https://eur-lex.europa.eu/eli/reg/2024/1689/oj/eng
+- **Human oversight (Art. 14):** Provenance supports reviewability and investigation workflows, enabling oversight when anomalies occur (e.g., future timestamps).  
+  https://eur-lex.europa.eu/eli/reg/2024/1689/oj/eng
 
 ---
 
