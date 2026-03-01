@@ -9,7 +9,7 @@ All public functions return plain DataFrames or dicts so results can be
 inspected, printed, or persisted directly from the notebook.
 """
 
-from __future__ import annotations
+from __future__ import annotations #Python 3.10+ for cleaner type hints
 
 from pathlib import Path
 from typing import Any
@@ -24,10 +24,10 @@ from scipy import stats
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 
-AGE_ORDER = ["<25", "25-34", "35-44", "45-54", "55-64", "65+"]
+AGE_ORDER = ["<25", "25-34", "35-44", "45-54", "55-64", "65+"] #Ensures bands sort correctly
 PALETTE = {"Female": "#E07B8B", "Male": "#4A90D9", "Unknown": "#AAAAAA"}
 FOUR_FIFTHS_THRESHOLD = 0.80
-PRIME_AGE_REFERENCE = "25-34"
+PRIME_AGE_REFERENCE = "25-34" #Common reference group for age DI comparisons
 
 FINANCIAL_COLS = [
     "clean_annual_income",
@@ -41,10 +41,10 @@ FINANCIAL_COLS = [
 
 def load_analysis(path: Path | str) -> pd.DataFrame:
     """Load and type-coerce applications_analysis.csv."""
-    df = pd.read_csv(path, dtype={"clean_zip_code": str, "applicant_pseudo_id": str})
+    df = pd.read_csv(path, dtype={"clean_zip_code": str, "applicant_pseudo_id": str}) #Keep zip codes and IDs as strings to preserve leading zeros
 
     df["clean_loan_approved"] = df["clean_loan_approved"].map(
-        {True: True, False: False, "True": True, "False": False, 1: True, 0: False}
+        {True: True, False: False, "True": True, "False": False, 1: True, 0: False} #Coerce various representations of boolean values to actual bools, treating unrecognized values as NaN
     )
     for col in [
         "clean_annual_income", "clean_credit_history_months",
@@ -52,10 +52,10 @@ def load_analysis(path: Path | str) -> pd.DataFrame:
         "clean_interest_rate", "clean_approved_amount",
     ]:
         if col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors="coerce")
+            df[col] = pd.to_numeric(df[col], errors="coerce") #Coerce financial columns to numeric, treating non-convertible values as NaN - Data Engineer cleaned data well, this is backup
 
-    df["approved"] = df["clean_loan_approved"].eq(True).astype("Int64")
-    df["age_band"] = pd.Categorical(df["age_band"], categories=AGE_ORDER, ordered=True)
+    df["approved"] = df["clean_loan_approved"].eq(True).astype("Int64") #Create a standardized 'approved' column as integer (1 for approved, 0 for rejected, <NA> for unknown)
+    df["age_band"] = pd.Categorical(df["age_band"], categories=AGE_ORDER, ordered=True) #Ensure age_band is a categorical with the defined order for correct sorting in analyses and plots
     return df
 
 
@@ -63,7 +63,7 @@ def load_spending(path: Path | str) -> pd.DataFrame:
     """Load spending_items_clean.csv."""
     df = pd.read_csv(path)
     if "amount_clean" in df.columns:
-        df["amount_clean"] = pd.to_numeric(df["amount_clean"], errors="coerce")
+        df["amount_clean"] = pd.to_numeric(df["amount_clean"], errors="coerce") #Coerce amount to numeric, treating non-convertible values as NaN - again, backup in case of dirty data
     return df
 
 
@@ -71,8 +71,8 @@ def load_spending(path: Path | str) -> pd.DataFrame:
 
 def approval_rate(df: pd.DataFrame) -> float:
     """Approval rate for a (pre-filtered) DataFrame, ignoring null outcomes."""
-    valid = df["approved"].dropna()
-    return float(valid.mean()) if len(valid) > 0 else float("nan")
+    valid = df["approved"].dropna() #Only consider rows with a known approval outcome to avoid skewing rates due to missing data
+    return float(valid.mean()) if len(valid) > 0 else float("nan") #Return NaN if there are no valid outcomes to avoid misleading 0% approval rate
 
 
 def disparate_impact(
@@ -97,7 +97,7 @@ def disparate_impact(
     di = unpriv_rate / priv_rate if priv_rate > 0 else float("nan")
     dpd = unpriv_rate - priv_rate
 
-    return {
+    return { #Return a comprehensive dict of results for easy inspection and use in summaries/plots
         "privileged_group": privileged,
         "unprivileged_group": unprivileged,
         "privileged_n": len(priv_df),
@@ -113,17 +113,17 @@ def disparate_impact(
 def chi2_test(df: pd.DataFrame, group_col: str, outcome_col: str = "approved") -> dict[str, Any]:
     """Chi-squared test of independence between a group column and loan approval."""
     valid = df[[group_col, outcome_col]].dropna()
-    ct = pd.crosstab(valid[group_col], valid[outcome_col])
+    ct = pd.crosstab(valid[group_col], valid[outcome_col]) #Builds contingency table
     chi2, p, dof, _ = stats.chi2_contingency(ct)
     return {"chi2": round(chi2, 4), "p_value": round(p, 6), "dof": dof, "significant_at_05": bool(p < 0.05)}
+# The chi-squared test checks if there's a statistically significant association between the grouping variable (e.g., gender or age band) and the approval outcome.
 
-
-def mannwhitney_test(a: pd.Series, b: pd.Series) -> dict[str, Any]:
+def mannwhitney_test(a: pd.Series, b: pd.Series) -> dict[str, Any]: #Mann-Whitney chosen for lack of assumptions about distribution and robustness to outliers, suitable for financial features which may be skewed
     """Two-sided Mann-Whitney U test between two numeric series."""
     a, b = a.dropna(), b.dropna()
     if len(a) < 2 or len(b) < 2:
         return {"u_stat": float("nan"), "p_value": float("nan"), "significant_at_05": False}
-    u, p = stats.mannwhitneyu(a, b, alternative="two-sided")
+    u, p = stats.mannwhitneyu(a, b, alternative="two-sided") #Checks for any difference, rather than assuming which group we expect to be higher
     return {"u_stat": round(u, 1), "p_value": round(p, 6), "significant_at_05": bool(p < 0.05)}
 
 
@@ -224,7 +224,8 @@ def financial_proxy_table(df: pd.DataFrame) -> pd.DataFrame:
             "significant_at_05": result["significant_at_05"],
         })
     return pd.DataFrame(rows)
-
+# This table helps identify if there are significant differences in financial features between men and women which may lead to proxy discrimination if those features are used in the model.
+# Regardless of gender being considered directly in lending decisions.
 
 def spending_gender_table(analysis_df: pd.DataFrame, spending_df: pd.DataFrame) -> pd.DataFrame | None:
     """
@@ -258,7 +259,7 @@ def credit_age_correlation(df: pd.DataFrame) -> dict[str, Any]:
     valid = adf[["age_band_rank", "clean_credit_history_months"]].dropna()
     rho, p = stats.spearmanr(valid["age_band_rank"], valid["clean_credit_history_months"])
     return {"spearman_rho": round(rho, 4), "p_value": round(p, 6), "significant_at_05": bool(p < 0.05)}
-
+# This correlation can indicate if age is acting as a proxy for credit history length, which may be a factor in lending decisions and could lead to indirect discrimination against younger applicants if credit history is heavily weighted.
 
 # ── Interest rate disparity ───────────────────────────────────────────────────
 
@@ -302,7 +303,7 @@ def rejection_reason_by_gender(df: pd.DataFrame) -> pd.DataFrame | None:
         .sort_values("total", ascending=False)
     )
     return tbl
-
+# Important for checking if proxy variables are being applied differently between genders
 
 # ── Summary table ─────────────────────────────────────────────────────────────
 
