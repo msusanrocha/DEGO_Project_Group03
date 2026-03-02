@@ -7,12 +7,12 @@
 
 ## 👥 Team
 
-| Name | Role | GitHub |
-|------|------|--------|
-| Connor Brown | Data Engineer | @Connor144-iv |
-| Madalena Rocha | Data Scientist | @msusanrocha |
-| António Santos | Governance Officer | @antonioncmsantos-hue |
-| Nora Puchert | Product Lead | @npu99 |
+| Name | Role | GitHub | Contributions |
+|------|------|--------|--------|
+| Connor Brown | Data Engineer | @Connor144-iv | Data Quality Notebook + Output, Key Findings in Readme, Data Preparation for further analysis
+| Madalena Rocha | Data Scientist | @msusanrocha | GitHub Setup, Bias Analysis Notebook + Output, Key Findings in Readme, Governance Support
+| António Santos | Governance Officer | @antonioncmsantos-hue | Privacy Demo Notebook + Output, Key Findings in Readme, Governance Recommendations
+| Nora Puchert | Product Lead | @npu99 | Readme, Structure tracking, Meeting organisation, Requirements guidance, Presentation
 
 ---
 
@@ -26,13 +26,15 @@
 DEGO_PROJECT_GROUP03/
 ├── README.md                   
 ├── data/                       ← Dataset files
+├── figures/ 
 ├── notebooks/
 │   ├── 01-data-quality.ipynb   ← Data loading, cleaning, profiling
 │   ├── 02-bias-analysis.ipynb  ← Fairness metrics, DI ratio, proxy analysis
 │   └── 03-privacy-demo.ipynb   ← PII inventory, pseudonymization, GDPR mapping
+└── presentation/               ← Video link
+└── reports/                    ← Analysis outputs and documentation
 ├── src/
 │   └── fairness_utils.py       ← 
-└── presentation/               ← Video link
 ```
 
 ---
