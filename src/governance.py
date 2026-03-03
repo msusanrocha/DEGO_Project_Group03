@@ -1,478 +1,711 @@
+"""
+governance.py — GDPR compliance, AI Act classification, and governance controls
+for the NovaCred Credit Application Governance Analysis.
+
+Role: Governance Officer
+Inputs: curated_full_df (applications_curated_full.csv)
+        analysis_df    (applications_analysis.csv)
+        quality_report (data_quality_report.csv)
+
+All public functions return plain DataFrames or dicts so results can be
+inspected, printed, or persisted directly from the notebook.
+"""
+
 from __future__ import annotations
 
-from dataclasses import dataclass
-from pathlib import Path
 from typing import Any
-
-import hashlib
-import re
 
 import pandas as pd
 
 
-# =============================================================================
-# Privacy demo helpers (Governance Officer)
-# =============================================================================
+# ── Constants ──────────────────────────────────────────────────────────────────
 
-def find_project_root(start: Path | None = None) -> Path:
+# GDPR Article references used throughout
+GDPR_ARTICLES: dict[str, str] = {
+    "Art. 4(1)":    "Definition of personal data",
+    "Art. 5(1)(a)": "Lawfulness, fairness and transparency",
+    "Art. 5(1)(b)": "Purpose limitation",
+    "Art. 5(1)(c)": "Data minimisation",
+    "Art. 5(1)(e)": "Storage limitation",
+    "Art. 6":       "Lawfulness of processing — lawful basis",
+    "Art. 7":       "Conditions for consent",
+    "Art. 9":       "Processing of special category data",
+    "Art. 13":      "Information to be provided (data collected from subject)",
+    "Art. 14":      "Information to be provided (data not from subject)",
+    "Art. 17":      "Right to erasure ('right to be forgotten')",
+    "Art. 22":      "Automated individual decision-making, including profiling",
+    "Art. 25":      "Data protection by design and by default",
+    "Art. 30":      "Records of processing activities (ROPA)",
+    "Art. 32":      "Security of processing",
+    "Art. 35":      "Data protection impact assessment (DPIA)",
+}
+
+# EU AI Act references
+AI_ACT_ARTICLES: dict[str, str] = {
+    "Annex III §5(b)":   "High-risk AI: creditworthiness assessment and credit scoring",
+    "Art. 9":            "Risk management system — ongoing throughout lifecycle",
+    "Art. 10":           "Data and data governance requirements for high-risk AI",
+    "Art. 13":           "Transparency and provision of information to deployers",
+    "Art. 14":           "Human oversight obligations",
+    "Art. 26":           "Obligations of deployers of high-risk AI systems",
+    "Art. 72":           "Registration in the EU database of high-risk AI systems",
+}
+
+# PII field catalogue with classification and GDPR mapping
+PII_FIELD_CATALOGUE: list[dict[str, str]] = [
+    {
+        "field_path":       "applicant_info.full_name",
+        "classification":   "Direct PII",
+        "gdpr_category":    "Personal data",
+        "gdpr_article":     "Art. 4(1), Art. 5(1)(c)",
+        "risk":             "High",
+        "recommendation":   "Pseudonymise or redact; retain only in secure audit log",
+    },
+    {
+        "field_path":       "applicant_info.email",
+        "classification":   "Direct PII",
+        "gdpr_category":    "Personal data",
+        "gdpr_article":     "Art. 4(1), Art. 5(1)(c)",
+        "risk":             "High",
+        "recommendation":   "Pseudonymise; mask domain for analytics",
+    },
+    {
+        "field_path":       "applicant_info.ssn",
+        "classification":   "Direct PII",
+        "gdpr_category":    "Personal data (national identifier equivalent)",
+        "gdpr_article":     "Art. 4(1), Art. 5(1)(c), Art. 32",
+        "risk":             "Critical",
+        "recommendation":   "Encrypt at rest; pseudonymise for all processing beyond identity verification",
+    },
+    {
+        "field_path":       "applicant_info.ip_address",
+        "classification":   "Direct PII",
+        "gdpr_category":    "Online identifier — personal data per GDPR recital 30",
+        "gdpr_article":     "Art. 4(1), Art. 5(1)(c)",
+        "risk":             "High",
+        "recommendation":   "Retain only for fraud/security purposes; apply storage limitation",
+    },
+    {
+        "field_path":       "applicant_info.date_of_birth",
+        "classification":   "Direct PII",
+        "gdpr_category":    "Personal data",
+        "gdpr_article":     "Art. 4(1), Art. 5(1)(c)",
+        "risk":             "High",
+        "recommendation":   "Convert to age band for analytics; retain raw only in secure store",
+    },
+    {
+        "field_path":       "applicant_info.gender",
+        "classification":   "Quasi-PII",
+        "gdpr_category":    "Personal data",
+        "gdpr_article":     "Art. 5(1)(c)",
+        "risk":             "Medium",
+        "recommendation":   "Retain for fairness monitoring only; document lawful basis",
+    },
+    {
+        "field_path":       "applicant_info.zip_code",
+        "classification":   "Quasi-PII",
+        "gdpr_category":    "Personal data (location proxy)",
+        "gdpr_article":     "Art. 5(1)(c)",
+        "risk":             "Medium",
+        "recommendation":   "Monitor as potential proxy variable for protected characteristics",
+    },
+    {
+        "field_path":       "spending_behavior[].category + amount",
+        "classification":   "Behavioural data",
+        "gdpr_category":    "Personal data — behavioural profiling",
+        "gdpr_article":     "Art. 5(1)(b), Art. 22",
+        "risk":             "High",
+        "recommendation":   "Document purpose limitation; assess whether profiling triggers Art. 22",
+    },
+    {
+        "field_path":       "decision.loan_approved + interest_rate",
+        "classification":   "Decision output",
+        "gdpr_category":    "Automated decision affecting data subject",
+        "gdpr_article":     "Art. 22, Art. 13",
+        "risk":             "Critical",
+        "recommendation":   "Provide explanation mechanism; ensure human oversight for adverse decisions",
+    },
+]
+
+# Governance gap definitions — fields/mechanisms expected but absent from dataset
+GOVERNANCE_GAPS: list[dict[str, str]] = [
+    {
+        "gap_id":       "GAP-001",
+        "gap_name":     "Missing consent timestamp",
+        "field":        "consent_timestamp",
+        "gdpr_article": "Art. 6, Art. 7",
+        "severity":     "Critical",
+        "description":  "No record of when or whether the applicant provided consent for data processing. Without this, NovaCred cannot demonstrate a lawful basis for processing personal data.",
+        "recommendation": "Implement a consent capture mechanism at application intake. Log timestamp, consent version, and channel. Store in an immutable audit log.",
+    },
+    {
+        "gap_id":       "GAP-002",
+        "gap_name":     "Missing data retention policy",
+        "field":        "retention_until",
+        "gdpr_article": "Art. 5(1)(e)",
+        "severity":     "High",
+        "description":  "No retention deadline is stored per record. Data may be held indefinitely, violating the storage limitation principle.",
+        "recommendation": "Define retention periods by data category (e.g., 5 years for approved applications, 2 years for rejections). Add a retention_until field populated at intake. Implement automated deletion or anonymisation at expiry.",
+    },
+    {
+        "gap_id":       "GAP-003",
+        "gap_name":     "Missing data source / transparency field",
+        "field":        "data_source",
+        "gdpr_article": "Art. 14",
+        "severity":     "High",
+        "description":  "No field indicates where applicant data was obtained. Where data is not collected directly from the subject, Art. 14 requires the controller to inform the subject of the data origin.",
+        "recommendation": "Add a data_source field (e.g., 'direct_application', 'credit_bureau', 'partner_referral'). Include data provenance in the Privacy Notice.",
+    },
+    {
+        "gap_id":       "GAP-004",
+        "gap_name":     "Missing processing purpose field",
+        "field":        "processing_purpose",
+        "gdpr_article": "Art. 5(1)(b)",
+        "severity":     "High",
+        "description":  "No field documents the lawful purpose for which this record is being processed, making it impossible to enforce purpose limitation.",
+        "recommendation": "Add a processing_purpose field with controlled vocabulary (e.g., 'credit_assessment', 'fraud_detection', 'regulatory_compliance'). Reject downstream use outside declared purposes.",
+    },
+    {
+        "gap_id":       "GAP-005",
+        "gap_name":     "No audit trail for automated decisions",
+        "field":        "decision_audit_log",
+        "gdpr_article": "Art. 22, Art. 13",
+        "severity":     "Critical",
+        "description":  "Credit decisions appear to be fully automated with no human review record and no explanation of the factors that drove the outcome. Art. 22 grants data subjects the right not to be subject to solely automated decisions with significant effects, unless specific conditions are met.",
+        "recommendation": "Log the model version, feature weights, and decision rationale for every application. Implement a human-in-the-loop review process for borderline or adverse decisions. Provide applicants with a meaningful explanation upon request.",
+    },
+    {
+        "gap_id":       "GAP-006",
+        "gap_name":     "SSN stored unencrypted",
+        "field":        "applicant_info.ssn",
+        "gdpr_article": "Art. 25, Art. 32",
+        "severity":     "Critical",
+        "description":  "Social Security Numbers are stored in plain text in the raw dataset. This violates data protection by design and by default, and creates significant breach risk.",
+        "recommendation": "Encrypt SSNs at rest using AES-256. Pseudonymise for all analytical use (SHA-256 with salted hash — already implemented in privacy.py). Restrict access to raw SSN to identity verification processes only.",
+    },
+    {
+        "gap_id":       "GAP-007",
+        "gap_name":     "No human oversight documentation",
+        "field":        "human_review_flag",
+        "gdpr_article": "Art. 22, Art. 14 (AI Act)",
+        "severity":     "High",
+        "description":  "There is no field indicating whether a human reviewed the automated decision, nor any mechanism for applicants to request human review. This is required under both GDPR Art. 22 and EU AI Act Art. 14.",
+        "recommendation": "Add a human_review_flag and human_reviewer_id to the decision object. Implement an escalation pathway for applicants to contest automated decisions.",
+    },
+    {
+        "gap_id":       "GAP-008",
+        "gap_name":     "Sensitive behavioural data collected without explicit purpose",
+        "field":        "spending_behavior",
+        "gdpr_article": "Art. 5(1)(b), Art. 22",
+        "severity":     "Medium",
+        "description":  "Detailed spending behaviour (categories and amounts) is collected and could be used for profiling. If spending data influences credit decisions, this constitutes profiling under GDPR Art. 4(4) and may trigger Art. 22 obligations.",
+        "recommendation": "Document whether spending_behavior influences the credit model. If so, disclose this in the Privacy Notice and provide an opt-out mechanism. Assess whether a DPIA (Art. 35) is required.",
+    },
+]
+
+
+# ── PII Inventory ─────────────────────────────────────────────────────────────
+
+def build_pii_catalogue() -> pd.DataFrame:
     """
-    Locate the project root by searching upwards for src/__init__.py.
-    This makes path handling robust regardless of the current working directory.
+    Return the full PII field catalogue as a DataFrame.
+    Maps each field to its classification, GDPR article, risk level,
+    and recommended control.
     """
-    cwd = (start or Path.cwd()).resolve()
-    for p in [cwd, *cwd.parents]:
-        if (p / "src" / "__init__.py").exists():
-            return p
-    raise FileNotFoundError("Could not find project root containing src/__init__.py")
+    return pd.DataFrame(PII_FIELD_CATALOGUE)
 
 
-def default_privacy_paths() -> "PrivacyPaths":
+# ── GDPR Gap Analysis ─────────────────────────────────────────────────────────
+
+def build_gdpr_gap_report(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Build standard PrivacyPaths using the project root.
-    Use this in notebooks to avoid hardcoding relative paths.
+    Detect governance fields that are expected but absent from the dataset.
+
+    For each known governance gap, checks whether the field exists and is
+    populated in the provided DataFrame. Returns a report DataFrame with
+    presence status, GDPR article, severity, and recommended remediation.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        The raw flattened applications DataFrame (applications_curated_full.csv
+        or the raw flattened output).
     """
-    root = find_project_root()
-    return PrivacyPaths(
-        pii_inventory=root / "data" / "quality" / "pii_inventory.csv",
-        applications_analysis=root / "data" / "curated" / "applications_analysis.csv",
-        applications_curated_full=root / "data" / "curated" / "applications_curated_full.csv",
-        dq_postclean=root / "data" / "quality" / "reports" / "post" / "data_quality_report_postclean.csv",
-    )
-    
-
-@dataclass(frozen=True)
-class PrivacyPaths:
-    """Typed container for the file paths used in the privacy notebook."""
-
-    pii_inventory: Path
-    applications_analysis: Path
-    applications_curated_full: Path
-    dq_postclean: Path
-
-
-def load_privacy_inputs(paths: PrivacyPaths) -> dict[str, pd.DataFrame]:
-    """
-    Load all datasets required for the privacy notebook section.
-
-    This function is intentionally strict:
-    - Fails early if any file is missing (strong reproducibility / control evidence).
-    - Returns a dict of DataFrames for convenient notebook usage.
-    """
-    missing = [p for p in paths.__dict__.values() if not Path(p).exists()]
-    if missing:
-        raise FileNotFoundError("Missing required files:\n" + "\n".join([f"- {m}" for m in missing]))
-
-    return {
-        "pii": pd.read_csv(paths.pii_inventory),
-        "analysis": pd.read_csv(paths.applications_analysis),
-        "curated": pd.read_csv(paths.applications_curated_full),
-        "dq_post": pd.read_csv(paths.dq_postclean),
-    }
-
-
-# =============================================================================
-# PII inventory: schema alignment + normalization
-# =============================================================================
-
-
-def infer_inventory_columns(df: pd.DataFrame) -> dict[str, str | None]:
-    """Infer pii_inventory.csv schema using your project column names."""
-    cols = {c.lower(): c for c in df.columns}
-
-    def get(name: str) -> str | None:
-        return cols.get(name.lower())
-
-    return {
-        "field": get("field_path"),
-        "class": get("classification"),
-        "raw": get("present_in_raw"),
-        "curated": get("present_in_curated"),
-        "analysis": get("present_in_analysis"),
-    }
-
-
-def normalize_pii_inventory(pii: pd.DataFrame) -> tuple[pd.DataFrame, list[str], list[str], dict[str, str | None]]:
-    """
-    Normalize the PII inventory to a canonical representation.
-
-    Output:
-    - inv: inventory with normalized helper columns:
-        * _field: stripped field name
-        * _class: normalized class label (lowercased; quasi-identifier -> quasi)
-    - direct_fields: list of "direct" PII fields
-    - quasi_fields: list of quasi/proxy fields
-    - inv_map: inferred schema mapping from infer_inventory_columns()
-    """
-    inv = pii.copy()
-    inv_map = infer_inventory_columns(inv)
-
-    if inv_map["field"] is None or inv_map["class"] is None:
-        raise ValueError(
-            "Could not infer PII inventory schema. Expected columns: "
-            "field_path, classification, present_in_raw, present_in_curated, present_in_analysis. "
-            f"Found columns: {list(inv.columns)}"
-        )
-
-    inv["_field"] = inv[inv_map["field"]].astype(str).str.strip()
-    inv["_class"] = inv[inv_map["class"]].astype(str).str.strip().str.lower()
-
-    # Normalize common label variants
-    inv["_class"] = (
-        inv["_class"]
-        .str.replace("quasi-identifier", "quasi", regex=False)
-        .str.replace("quasi identifier", "quasi", regex=False)
-        .str.replace("direct pii", "direct", regex=False)
-    )
-
-    direct_fields = sorted(inv.loc[inv["_class"].eq("direct"), "_field"].dropna().unique().tolist())
-    quasi_fields = sorted(inv.loc[inv["_class"].isin(["quasi", "proxy"]), "_field"].dropna().unique().tolist())
-
-    return inv, direct_fields, quasi_fields, inv_map
-
-
-def build_pii_presence_table(
-    inv: pd.DataFrame,
-    inv_map: dict[str, str | None],
-    analysis_cols: set[str],
-    curated_cols: set[str],
-) -> pd.DataFrame:
-    """
-    Build a governance-friendly table: "PII class -> where it appears (raw/curated/analysis)".
-
-    Uses the inventory presence flags (present_in_raw/curated/analysis).
-    If flags are missing, falls back to column intersection (defensive).
-    """
-    has_layer_flags = all(inv_map.get(layer) is not None for layer in ["raw", "curated", "analysis"])
-
-    if has_layer_flags:
-        tbl = inv[["_field", "_class"]].copy()
-
-        def to_bool(series: pd.Series) -> pd.Series:
-            if series.dtype == bool:
-                return series
-            return series.astype(str).str.strip().str.lower().isin(["1", "true", "yes", "y", "present"])
-
-        tbl["raw"] = to_bool(inv[inv_map["raw"]])  # type: ignore[index]
-        tbl["curated"] = to_bool(inv[inv_map["curated"]])  # type: ignore[index]
-        tbl["analysis"] = to_bool(inv[inv_map["analysis"]])  # type: ignore[index]
-    else:
-        # Fallback: infer presence by dataset column intersection
-        tbl = inv[["_field", "_class"]].copy()
-        tbl["raw"] = pd.NA
-        tbl["curated"] = tbl["_field"].isin(curated_cols)
-        tbl["analysis"] = tbl["_field"].isin(analysis_cols)
-
-    return (
-        tbl.rename(columns={"_field": "field", "_class": "pii_class"})
-        .sort_values(["pii_class", "field"])
-        .reset_index(drop=True)
-    )
-
-
-# =============================================================================
-# Data minimisation + defence-in-depth
-# =============================================================================
-
-
-def assert_no_direct_pii_in_analysis(direct_fields: list[str], analysis: pd.DataFrame) -> list[str]:
-    """
-    Enforce the key privacy control: Direct PII must not be present in the analysis/model dataset.
-
-    Returns the list of direct PII fields found in analysis (should be empty).
-    Raises AssertionError if any are found (fail fast).
-    """
-    analysis_cols = set(map(str, analysis.columns))
-    direct_in_analysis = sorted(set(direct_fields).intersection(analysis_cols))
-
-    if direct_in_analysis:
-        raise AssertionError(
-            "DATA MINIMISATION FAILURE: Direct PII columns found in applications_analysis.csv: "
-            + ", ".join(direct_in_analysis)
-        )
-
-    return direct_in_analysis
-
-
-def heuristic_suspicious_columns(df: pd.DataFrame) -> list[str]:
-    """
-    Defence-in-depth heuristic scan for columns that *look like* they might contain direct identifiers.
-
-    This is not the authoritative check (the inventory is), but it helps detect naming drift.
-    """
-    pattern = re.compile(
-        r"(name|email|e-mail|ssn|social|ip|dob|date_of_birth|birth|phone|passport|national_id)",
-        re.IGNORECASE,
-    )
-    return sorted([c for c in df.columns if pattern.search(str(c))])
-
-
-# =============================================================================
-# Safe preview utilities (avoid PII leakage in screenshots)
-# =============================================================================
-
-
-def safe_preview_curated(curated: pd.DataFrame, n: int = 10) -> pd.DataFrame:
-    """
-    Produce a small preview of the curated dataset that is safe for screenshots.
-
-    Rationale:
-    - Curated layers may contain direct PII for auditability/traceability.
-    - Governance practice: never display raw identifiers in notebooks/slides.
-
-    Implementation:
-    - Mask common PII columns by keeping only the last 3 characters.
-    - Uses Series.map() to avoid Pylance overload/type-check warnings.
-    """
-    preview = curated.head(n).copy()
-
-    common_pii_cols = {
-        "raw_applicant_full_name",
-        "raw_applicant_email",
-        "clean_email",
-        "raw_applicant_ssn",
-        "raw_applicant_ip_address",
-        "raw_applicant_date_of_birth",
-        "clean_date_of_birth",
-    }
-
-    def mask_value(v: Any) -> Any:
-        if pd.isna(v):
-            return pd.NA
-        s = str(v)
-        if len(s) <= 3:
-            return "***"
-        return "***" + s[-3:]
-
-    for c in preview.columns:
-        if c in common_pii_cols:
-            preview[c] = preview[c].astype("object").map(mask_value)
-
-    return preview
-
-
-# =============================================================================
-# Pseudonymisation demo (educational evidence)
-# =============================================================================
-
-
-def demo_pseudonymise(value: Any, salt: str) -> str | pd.NA:
-    """
-    Minimal deterministic pseudonymisation demo (SHA-256 + salt).
-
-    Educational evidence only:
-    - In production, the salt must come from a secrets manager (not hardcoded).
-    - Analysts should not have access to the salt/mapping logic (separation of duties).
-    """
-    if pd.isna(value):
-        return pd.NA
-    text = str(value).strip().lower()
-    if text == "":
-        return pd.NA
-
-    msg = (salt + text).encode("utf-8")
-    return hashlib.sha256(msg).hexdigest()
-
-
-# =============================================================================
-# DQ report helpers (post-clean) — replaces the "deleted notebook" logic
-# =============================================================================
-
-
-def _require_columns(df: pd.DataFrame, required: list[str], context: str) -> None:
-    """Raise a clear error if required columns are missing."""
-    missing = [c for c in required if c not in df.columns]
-    if missing:
-        raise KeyError(f"{context}: missing required columns: {missing}")
-
-
-def build_data_quality_report_postclean(
-    applications_clean: pd.DataFrame,
-    spending_clean: pd.DataFrame | None = None,
-    *,
-    application_id_col: str = "application_id",
-    sample_n: int = 5,
-) -> pd.DataFrame:
-    """
-    Build a post-clean data quality report as an "issue registry" style table.
-
-    How it works:
-    - Uses policy-as-code validators from src/schema.py:
-        * validate_applications_postclean()
-        * validate_spending_postclean() (optional)
-    - Aggregates rule failures into counts and percentages per rule.
-    - Joins rule metadata via build_rule_catalog() when available.
-
-    Notes:
-    - This function is designed to recreate data_quality_report_postclean.csv
-      without relying on the notebook that originally produced it.
-    - Duplicate/conflict classification is not implemented here (that belongs in quality.py);
-      this focuses on schema-rule failures that appear in the post-clean report.
-    """
-    # Lazy import to avoid circular dependencies and keep notebook imports lightweight
-    from .schema import (
-        validate_applications_postclean,
-        validate_spending_postclean,
-        build_rule_catalog,
-        APPLICATION_RULES,
-        SPENDING_RULES,
-    )
-
-    # Run post-clean validation flags
-    app_flags = validate_applications_postclean(applications_clean)
-    app_n = len(app_flags)
-
-    # Map flag_name -> rule_id (from schema.py catalogs)
-    app_flag_to_rule = {k: v.rule_id for k, v in APPLICATION_RULES.items()}
-    spn_flag_to_rule = {k: v.rule_id for k, v in SPENDING_RULES.items()}
-
     rows: list[dict[str, Any]] = []
+    for gap in GOVERNANCE_GAPS:
+        field = gap["field"]
+        # Check if the field exists in the DataFrame at all
+        field_exists = field in df.columns
+        if field_exists:
+            # Check if it has any non-null, non-empty values
+            populated = df[field].notna().any() and df[field].astype(str).str.strip().ne("").any()
+            status = "Present & populated" if populated else "Present but empty"
+        else:
+            status = "Absent from dataset"
 
-    def add_rows_from_flags(
-        flags: pd.DataFrame,
-        n_rows: int,
-        flag_to_rule: dict[str, str],
-        entity: str,
-        id_series: pd.Series | None,
-    ) -> None:
-        for flag_name in flags.columns:
-            affected = int(flags[flag_name].astype(bool).sum())
-            pct = (affected / n_rows * 100.0) if n_rows > 0 else 0.0
+        rows.append(
+            {
+                "gap_id":         gap["gap_id"],
+                "gap_name":       gap["gap_name"],
+                "field":          field,
+                "status":         status,
+                "gdpr_article":   gap["gdpr_article"],
+                "severity":       gap["severity"],
+                "description":    gap["description"],
+                "recommendation": gap["recommendation"],
+            }
+        )
 
-            rule_id = flag_to_rule.get(flag_name, flag_name)
-
-            example_ids: list[Any] = []
-            if affected > 0 and id_series is not None and application_id_col in applications_clean.columns:
-                idx = flags.index[flags[flag_name].astype(bool)]
-                example_ids = (
-                    applications_clean.loc[idx, application_id_col]  # type: ignore[index]
-                    .dropna()
-                    .astype(str)
-                    .unique()
-                    .tolist()[:sample_n]
-                )
-
-            rows.append(
-                {
-                    "stage": "post",
-                    "entity": entity,
-                    "rule_id": rule_id,
-                    "flag_name": flag_name,
-                    "affected_count": affected,
-                    "affected_pct": pct,
-                    "n_rows": n_rows,
-                    "example_ids": ", ".join(example_ids) if example_ids else pd.NA,
-                }
-            )
-
-    id_series = applications_clean[application_id_col] if application_id_col in applications_clean.columns else None
-    add_rows_from_flags(app_flags, app_n, app_flag_to_rule, "applications", id_series)
-
-    # Optional spending validation
-    if spending_clean is not None:
-        sp_flags = validate_spending_postclean(spending_clean)
-        sp_n = len(sp_flags)
-        add_rows_from_flags(sp_flags, sp_n, spn_flag_to_rule, "spending", None)
-
+    severity_order = {"Critical": 0, "High": 1, "Medium": 2, "Low": 3}
     report = pd.DataFrame(rows)
-
-    # Join rule metadata if possible (field_path, severity, description, value_source)
-    try:
-        catalog = build_rule_catalog()
-        catalog_post = catalog.loc[catalog["stage"].astype(str).str.lower().eq("post")].copy()
-
-        report = report.merge(
-            catalog_post[
-                [
-                    "rule_id",
-                    "issue_group",
-                    "field_path",
-                    "field_path_annotated",
-                    "value_source",
-                    "severity",
-                    "description",
-                ]
-            ],
-            how="left",
-            on="rule_id",
-        )
-    except Exception:
-        # If the catalog shape differs, keep the report usable anyway
-        pass
-
-    # Sort to make the report governance-friendly (high severity first if available)
-    if "severity" in report.columns:
-        sev_order = {"high": 0, "medium": 1, "low": 2}
-        report["_sev_rank"] = report["severity"].astype(str).str.lower().map(sev_order).fillna(9)
-        report = report.sort_values(["_sev_rank", "affected_count"], ascending=[True, False]).drop(columns=["_sev_rank"])
-    else:
-        report = report.sort_values(["affected_count"], ascending=False)
-
-    return report.reset_index(drop=True)
+    report["_sev_order"] = report["severity"].map(severity_order).fillna(99)
+    report = report.sort_values("_sev_order").drop(columns="_sev_order").reset_index(drop=True)
+    return report
 
 
-def write_data_quality_report_postclean(
-    *,
-    applications_curated_full_path: Path,
-    output_path: Path,
-    spending_items_clean_path: Path | None = None,
-    application_id_col: str = "application_id",
-    sample_n: int = 5,
-) -> Path:
+def gdpr_gap_summary(gap_report: pd.DataFrame) -> pd.DataFrame:
     """
-    Convenience wrapper to create and write data_quality_report_postclean.csv to disk.
-
-    Typical usage (script or notebook):
-        write_data_quality_report_postclean(
-            applications_curated_full_path=Path("data/curated/applications_curated_full.csv"),
-            output_path=Path("data/quality/reports/post/data_quality_report_postclean.csv"),
-        )
+    Compact summary of gap counts by severity — suitable for the README table.
     """
-    apps = pd.read_csv(applications_curated_full_path)
-    spending = pd.read_csv(spending_items_clean_path) if spending_items_clean_path else None
-
-    report = build_data_quality_report_postclean(
-        applications_clean=apps,
-        spending_clean=spending,
-        application_id_col=application_id_col,
-        sample_n=sample_n,
+    return (
+        gap_report.groupby("severity", observed=True)["gap_id"]
+        .count()
+        .reindex(["Critical", "High", "Medium", "Low"], fill_value=0)
+        .rename("gap_count")
+        .reset_index()
+        .rename(columns={"severity": "Severity", "gap_count": "Number of Gaps"})
     )
 
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    report.to_csv(output_path, index=False)
-    return output_path
 
+# ── MongoDB Audit Query Simulation ────────────────────────────────────────────
 
-# =============================================================================
-# Targeted extractor used in the privacy notebook (auditability / provenance)
-# =============================================================================
-
-
-def extract_processing_timestamp_rows(dq_post: pd.DataFrame) -> pd.DataFrame:
+def mongo_query_1_duplicate_ssns(df: pd.DataFrame, ssn_col: str = "raw_applicant_ssn") -> pd.DataFrame:
     """
-    Extract post-clean quality report rows related to missing processing_timestamp.
+    Pandas equivalent of MongoDB Audit Query 1 (Uniqueness):
 
-    Why this matters for governance:
-    - Missing processing_timestamp is a provenance/audit-trail gap.
-    - It is typically an upstream instrumentation/process deficiency.
+        db.credit_applications.aggregate([
+          { $group: { _id: "$applicant_info.ssn",
+                      count: { $sum: 1 },
+                      names: { $push: "$applicant_info.full_name" } }},
+          { $match: { count: { $gt: 1 } } },
+          { $sort:  { count: -1 } }
+        ])
 
-    The function searches across common columns (rule_id, description, field_path).
+    Returns duplicate SSN groups with application counts.
     """
-    masks: list[pd.Series] = []
+    if ssn_col not in df.columns:
+        return pd.DataFrame(columns=["ssn", "count", "application_ids"])
 
-    keys = ["R_APP_001", "flag_missing_processing_timestamp", "processing_timestamp"]
-    for key in keys:
-        if "rule_id" in dq_post.columns:
-            masks.append(dq_post["rule_id"].astype(str).str.contains(key, case=False, na=False))
-        if "description" in dq_post.columns:
-            masks.append(dq_post["description"].astype(str).str.contains(key, case=False, na=False))
-        if "field_path" in dq_post.columns:
-            masks.append(dq_post["field_path"].astype(str).str.contains(key, case=False, na=False))
+    ssn = df[ssn_col].fillna("").astype(str).str.strip()
+    non_blank = df[ssn.ne("")]
+    grouped = (
+        non_blank.groupby(ssn_col)
+        .agg(count=("application_id", "count"),
+             application_ids=("application_id", lambda x: "|".join(x.astype(str).tolist())))
+        .reset_index()
+        .rename(columns={ssn_col: "ssn"})
+    )
+    duplicates = grouped[grouped["count"] > 1].sort_values("count", ascending=False).reset_index(drop=True)
+    return duplicates
 
-    if not masks:
-        return dq_post.head(0)
 
-    mask = masks[0]
-    for m in masks[1:]:
-        mask = mask | m
+def mongo_query_2_gender_consistency(df: pd.DataFrame, gender_col: str = "raw_applicant_gender") -> pd.DataFrame:
+    """
+    Pandas equivalent of MongoDB Audit Query 2 (Consistency):
 
-    return dq_post.loc[mask].copy()
+        db.credit_applications.aggregate([
+          { $group: { _id: "$applicant_info.gender", count: { $sum: 1 } }},
+          { $sort:  { count: -1 } }
+        ])
+
+    Returns all distinct gender values and their frequency, exposing
+    inconsistent encodings (e.g., 'm', 'M', 'Male', 'male').
+    """
+    if gender_col not in df.columns:
+        return pd.DataFrame(columns=["gender_value", "count"])
+
+    result = (
+        df[gender_col]
+        .fillna("[NULL]")
+        .astype(str)
+        .str.strip()
+        .value_counts(dropna=False)
+        .rename_axis("gender_value")
+        .reset_index()
+        .rename(columns={gender_col: "count", "count": "count"})
+    )
+    result.columns = ["gender_value", "count"]
+    return result
+
+
+def mongo_query_3_missing_consent(df: pd.DataFrame) -> dict[str, Any]:
+    """
+    Pandas equivalent of MongoDB Audit Query 3 (Completeness / GDPR gap):
+
+        db.credit_applications.aggregate([
+          { $match:  { "consent_timestamp": { $exists: false } }},
+          { $count: "missing_consent" }
+        ])
+
+    Also checks for retention_until, data_source, and processing_purpose
+    as per the governance fields listed in the lecture slides.
+    """
+    governance_fields = {
+        "consent_timestamp":  "Art. 6 / Art. 7 — Lawful basis / Consent",
+        "retention_until":    "Art. 5(1)(e) — Storage limitation",
+        "data_source":        "Art. 14 — Transparency",
+        "processing_purpose": "Art. 5(1)(b) — Purpose limitation",
+    }
+    total = len(df)
+    results: dict[str, Any] = {"total_records": total, "fields": {}}
+
+    for field, gdpr_ref in governance_fields.items():
+        if field not in df.columns:
+            missing_count = total
+            present_count = 0
+        else:
+            missing_count = int(df[field].isna().sum() + (df[field].astype(str).str.strip().eq("")).sum())
+            present_count = total - missing_count
+
+        results["fields"][field] = {
+            "gdpr_reference":  gdpr_ref,
+            "present_count":   present_count,
+            "missing_count":   missing_count,
+            "missing_percent": round((missing_count / total) * 100 if total > 0 else 0.0, 2),
+            "status":          "ABSENT" if field not in df.columns else ("EMPTY" if missing_count == total else "PARTIAL/OK"),
+        }
+
+    return results
+
+
+def mongo_query_4_validity(df: pd.DataFrame) -> dict[str, Any]:
+    """
+    Pandas equivalent of MongoDB Audit Query 4 (Validity):
+
+        // Negative income
+        db.credit_applications.aggregate([
+          { $match: { "financials.annual_income": { $lt: 0 } }},
+          { $count: "negative_income" }
+        ])
+
+        // Unrealistic DTI
+        db.credit_applications.aggregate([
+          { $match: { "financials.debt_to_income": { $gt: 1 } }},
+          { $project: { _id: 1, dti: "$financials.debt_to_income" }}
+        ])
+    """
+    import numpy as np
+
+    results: dict[str, Any] = {}
+    total = len(df)
+
+    # Negative income check
+    if "raw_financial_annual_income" in df.columns:
+        income = pd.to_numeric(df["raw_financial_annual_income"], errors="coerce")
+        neg_mask = income < 0
+        results["negative_income"] = {
+            "count":   int(neg_mask.sum()),
+            "percent": round((neg_mask.sum() / total) * 100 if total > 0 else 0.0, 2),
+            "rule":    "Validity — income cannot be negative",
+        }
+
+    # DTI out of [0, 1] range
+    if "raw_financial_debt_to_income" in df.columns:
+        dti = pd.to_numeric(df["raw_financial_debt_to_income"], errors="coerce")
+        dti_invalid = (dti < 0) | (dti > 1)
+        results["dti_out_of_range"] = {
+            "count":   int(dti_invalid.sum()),
+            "percent": round((dti_invalid.sum() / total) * 100 if total > 0 else 0.0, 2),
+            "rule":    "Validity — debt-to-income must be in [0, 1]",
+        }
+
+    # Negative credit history
+    if "raw_financial_credit_history_months" in df.columns:
+        ch = pd.to_numeric(df["raw_financial_credit_history_months"], errors="coerce")
+        neg_ch = ch < 0
+        results["negative_credit_history"] = {
+            "count":   int(neg_ch.sum()),
+            "percent": round((neg_ch.sum() / total) * 100 if total > 0 else 0.0, 2),
+            "rule":    "Validity — credit history months cannot be negative",
+        }
+
+    # Negative savings
+    if "raw_financial_savings_balance" in df.columns:
+        sav = pd.to_numeric(df["raw_financial_savings_balance"], errors="coerce")
+        neg_sav = sav < 0
+        results["negative_savings"] = {
+            "count":   int(neg_sav.sum()),
+            "percent": round((neg_sav.sum() / total) * 100 if total > 0 else 0.0, 2),
+            "rule":    "Validity — savings balance cannot be negative",
+        }
+
+    return results
+
+
+def mongo_query_5_bias_approval_rate(df: pd.DataFrame,
+                                      gender_col: str = "raw_applicant_gender",
+                                      approved_col: str = "raw_decision_loan_approved") -> pd.DataFrame:
+    """
+    Pandas equivalent of MongoDB Audit Query 5 (AI Act — Fairness Testing):
+
+        db.credit_applications.aggregate([
+          { $group: {
+              _id: "$applicant_info.gender",
+              total:    { $sum: 1 },
+              approved: { $sum: { $cond: ["$decision.loan_approved", 1, 0] }}
+          }},
+          { $addFields: {
+              approval_rate: { $divide: ["$approved", "$total"] }
+          }},
+          { $sort: { approval_rate: -1 } }
+        ])
+
+    Computes approval rate by raw gender value (before normalisation),
+    matching the MongoDB aggregation pattern from the lecture slides.
+    """
+    if gender_col not in df.columns or approved_col not in df.columns:
+        return pd.DataFrame()
+
+    approved_bool = df[approved_col].map(
+        {"true": True, "false": False, True: True, False: False, 1: True, 0: False,
+         "True": True, "False": False, "1": True, "0": False}
+    )
+
+    temp = df[[gender_col]].copy()
+    temp["approved_int"] = approved_bool.map({True: 1, False: 0})
+    temp["gender_raw"] = temp[gender_col].fillna("[NULL]").astype(str).str.strip()
+
+    result = (
+        temp.groupby("gender_raw")
+        .agg(total=("approved_int", "count"),
+             approved=("approved_int", "sum"))
+        .assign(approval_rate=lambda x: (x["approved"] / x["total"]).round(4))
+        .sort_values("approval_rate", ascending=False)
+        .reset_index()
+    )
+    return result
+
+
+# ── AI Act Classification ─────────────────────────────────────────────────────
+
+def build_ai_act_classification() -> dict[str, Any]:
+    """
+    Return NovaCred's AI Act classification and associated obligations.
+
+    NovaCred's credit scoring system is HIGH-RISK under EU AI Act Annex III §5(b):
+    'AI systems intended to be used for creditworthiness assessment or credit
+    scoring of natural persons.'
+
+    Returns a dict with risk level, legal basis, and a list of obligations.
+    """
+    return {
+        "system_name":    "NovaCred Automated Credit Scoring System",
+        "risk_level":     "HIGH-RISK",
+        "legal_basis":    "EU AI Act Annex III, Point 5(b) — Creditworthiness assessment and credit scoring",
+        "obligations": [
+            {
+                "article":     "Art. 9",
+                "obligation":  "Risk management system",
+                "description": "Implement and maintain a risk management system throughout the entire lifecycle of the AI system. Identify and analyse known and foreseeable risks.",
+            },
+            {
+                "article":     "Art. 10",
+                "obligation":  "Data governance",
+                "description": "Training, validation, and testing data must meet quality criteria. Data must be examined for biases. Data gaps and shortcomings must be addressed.",
+            },
+            {
+                "article":     "Art. 13",
+                "obligation":  "Transparency",
+                "description": "The AI system must be sufficiently transparent to enable deployers to interpret its output. A technical document must be produced and kept up to date.",
+            },
+            {
+                "article":     "Art. 14",
+                "obligation":  "Human oversight",
+                "description": "High-risk AI systems must be designed to allow effective human oversight. Humans must be able to intervene, override, or stop the system.",
+            },
+            {
+                "article":     "Art. 26",
+                "obligation":  "Deployer obligations",
+                "description": "NovaCred (as deployer) must ensure the system is used in accordance with instructions, monitor operation, and inform the provider of risks identified.",
+            },
+            {
+                "article":     "Art. 72",
+                "obligation":  "EU database registration",
+                "description": "High-risk AI systems in scope of Annex III must be registered in the EU database before being placed on the market or put into service.",
+            },
+            {
+                "article":     "Art. 35 (GDPR)",
+                "obligation":  "DPIA required",
+                "description": "Automated credit decisions using profiling likely require a Data Protection Impact Assessment under GDPR Art. 35 before processing begins.",
+            },
+        ],
+        "immediate_gaps": [
+            "No human oversight mechanism documented in the dataset",
+            "No audit trail linking decisions to model version or feature inputs",
+            "No DPIA evidence present",
+            "No EU AI Act registration recorded",
+            "Fairness testing shows DI = 0.77 (below 0.80 threshold) — potential Art. 10 violation",
+        ],
+    }
+
+
+def build_ai_act_summary_df(ai_act: dict[str, Any]) -> pd.DataFrame:
+    """Convert the AI Act classification dict to a tidy DataFrame for display."""
+    return pd.DataFrame(ai_act["obligations"])
+
+
+# ── Governance Recommendations ────────────────────────────────────────────────
+
+def build_governance_recommendations() -> pd.DataFrame:
+    """
+    Return a prioritised, actionable governance recommendations table.
+
+    Each row represents one control with its priority, category,
+    GDPR/AI Act reference, effort estimate, and responsible role.
+    """
+    recommendations = [
+        {
+            "priority":       1,
+            "control_id":     "GOV-001",
+            "category":       "Legal Compliance",
+            "title":          "Implement consent capture and tracking",
+            "description":    "Add consent_timestamp, consent_version, and consent_channel to the application intake form. Store in an immutable log. Required to demonstrate lawful basis under GDPR Art. 6/7.",
+            "legal_ref":      "GDPR Art. 6, Art. 7",
+            "effort":         "Medium",
+            "responsible":    "Engineering + Legal",
+        },
+        {
+            "priority":       2,
+            "control_id":     "GOV-002",
+            "category":       "Legal Compliance",
+            "title":          "Define and enforce data retention policy",
+            "description":    "Establish retention periods per data category. Populate retention_until at intake. Automate deletion or anonymisation at expiry. Document in ROPA (Art. 30).",
+            "legal_ref":      "GDPR Art. 5(1)(e), Art. 30",
+            "effort":         "Medium",
+            "responsible":    "Data Engineering + DPO",
+        },
+        {
+            "priority":       3,
+            "control_id":     "GOV-003",
+            "category":       "Security",
+            "title":          "Encrypt and pseudonymise SSNs",
+            "description":    "Encrypt SSNs at rest (AES-256). Use salted SHA-256 hash for all analytical processing (already implemented in privacy.py). Restrict raw SSN access to identity verification only.",
+            "legal_ref":      "GDPR Art. 25, Art. 32",
+            "effort":         "Low",
+            "responsible":    "Data Engineering",
+        },
+        {
+            "priority":       4,
+            "control_id":     "GOV-004",
+            "category":       "AI Act / Automated Decisions",
+            "title":          "Implement human oversight mechanism",
+            "description":    "Add human_review_flag and human_reviewer_id to the decision schema. Require mandatory human review for adverse decisions and borderline cases. Provide an appeal pathway for applicants.",
+            "legal_ref":      "GDPR Art. 22, EU AI Act Art. 14",
+            "effort":         "High",
+            "responsible":    "Product + Operations",
+        },
+        {
+            "priority":       5,
+            "control_id":     "GOV-005",
+            "category":       "AI Act / Automated Decisions",
+            "title":          "Create decision audit trail",
+            "description":    "Log model version, feature values, and decision rationale for every application. Retain audit log for minimum 5 years. Required for explainability and Art. 22 compliance.",
+            "legal_ref":      "GDPR Art. 22, EU AI Act Art. 13",
+            "effort":         "Medium",
+            "responsible":    "Data Science + Engineering",
+        },
+        {
+            "priority":       6,
+            "control_id":     "GOV-006",
+            "category":       "Fairness",
+            "title":          "Address gender disparate impact (DI = 0.77)",
+            "description":    "DI ratio of 0.77 is below the four-fifths threshold. Investigate whether financial proxy variables (income, credit history) are driving the gap. Implement fairness constraints in the model or adjust decision thresholds.",
+            "legal_ref":      "EU AI Act Art. 10, GDPR Art. 22",
+            "effort":         "High",
+            "responsible":    "Data Science + Legal",
+        },
+        {
+            "priority":       7,
+            "control_id":     "GOV-007",
+            "category":       "Transparency",
+            "title":          "Add data source and processing purpose fields",
+            "description":    "Populate data_source and processing_purpose at intake. Include data provenance in Privacy Notice. Required where data is not collected directly from the subject.",
+            "legal_ref":      "GDPR Art. 5(1)(b), Art. 14",
+            "effort":         "Low",
+            "responsible":    "Engineering + Legal",
+        },
+        {
+            "priority":       8,
+            "control_id":     "GOV-008",
+            "category":       "AI Act",
+            "title":          "Conduct DPIA and register with EU AI Act database",
+            "description":    "Automated credit scoring using profiling requires a DPIA under GDPR Art. 35. As a high-risk AI system under Annex III §5(b), NovaCred must also register in the EU AI Act database before deployment.",
+            "legal_ref":      "GDPR Art. 35, EU AI Act Art. 72",
+            "effort":         "High",
+            "responsible":    "DPO + Legal + Management",
+        },
+        {
+            "priority":       9,
+            "control_id":     "GOV-009",
+            "category":       "Data Quality",
+            "title":          "Standardise gender encoding at source",
+            "description":    "Enforce a controlled vocabulary for gender at intake (Male / Female / Prefer not to say). Reject non-conforming values at the API layer. Eliminates the consistency issue identified in data quality audit.",
+            "legal_ref":      "GDPR Art. 5(1)(d) — Accuracy",
+            "effort":         "Low",
+            "responsible":    "Data Engineering",
+        },
+        {
+            "priority":       10,
+            "control_id":     "GOV-010",
+            "category":       "Privacy by Design",
+            "title":          "Apply data minimisation to spending behaviour data",
+            "description":    "Assess whether all spending categories are necessary for the credit decision. Remove or aggregate categories that do not improve model performance. Document the necessity assessment.",
+            "legal_ref":      "GDPR Art. 5(1)(c), Art. 25",
+            "effort":         "Medium",
+            "responsible":    "Data Science + DPO",
+        },
+    ]
+    return pd.DataFrame(recommendations)
+
+
+# ── Pseudonymisation Evidence ─────────────────────────────────────────────────
+
+def pseudonymisation_evidence(curated_df: pd.DataFrame, analysis_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Build a before/after pseudonymisation comparison table for the notebook.
+    Shows which PII fields are present in the curated layer vs removed in analysis.
+    """
+    pii_fields = {
+        "raw_applicant_full_name":   "Full name",
+        "raw_applicant_email":       "Email address",
+        "raw_applicant_ssn":         "Social Security Number",
+        "raw_applicant_ip_address":  "IP address",
+        "raw_applicant_date_of_birth": "Date of birth",
+    }
+    pseudonymised_fields = {
+        "applicant_pseudo_id": "SHA-256 pseudonym (salt + SSN/email/name+DOB+zip)",
+        "age_band":            "Age band (coarse — not exact DOB)",
+        "clean_gender":        "Gender (kept for fairness monitoring only)",
+    }
+
+    rows = []
+    for field, label in pii_fields.items():
+        rows.append({
+            "field":            label,
+            "raw_field_name":   field,
+            "in_curated_layer": field in curated_df.columns,
+            "in_analysis_layer": False,
+            "treatment":        "Removed from analysis dataset",
+            "gdpr_principle":   "Data minimisation (Art. 5(1)(c))",
+        })
+    for field, desc in pseudonymised_fields.items():
+        rows.append({
+            "field":            desc,
+            "raw_field_name":   f"→ {field}",
+            "in_curated_layer": False,
+            "in_analysis_layer": field in analysis_df.columns,
+            "treatment":        "Derived / pseudonymised replacement",
+            "gdpr_principle":   "Privacy by design (Art. 25)",
+        })
+
+    return pd.DataFrame(rows)

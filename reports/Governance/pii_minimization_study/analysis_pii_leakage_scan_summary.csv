@@ -1,4 +1,0 @@
-pattern,sample_size_rows,columns_scanned,cell_hits,columns_with_hits
-email_like,500,6,0,0
-ipv4_like,500,6,0,0
-ssn_like_hyphen,500,6,0,0
