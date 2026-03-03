@@ -325,9 +325,63 @@ NovaCred satisfies all three conditions: it is an ML system, it assesses creditw
 
 ---
 
+## 🛡️ Governance Recommendations
+
+10 prioritised controls derived from the GDPR gap analysis, AI Act classification, and bias findings:
+
+| Priority | Control | Category                     | Action                                            | Legal Reference                                                                                                                                       | Effort | Responsible                |
+| -------- | ------- | ---------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | -------------------------- |
+| 1        | GOV-001 | Legal Compliance             | Implement consent capture and tracking            | [GDPR Art. 6](https://gdpr-info.eu/art-6-gdpr/), [Art. 7](https://gdpr-info.eu/art-7-gdpr/)                                                           | Medium | Engineering + Legal        |
+| 2        | GOV-002 | Legal Compliance             | Define and enforce data retention policy          | [GDPR Art. 5(1)(e)](https://gdpr-info.eu/art-5-gdpr/), [Art. 30](https://gdpr-info.eu/art-30-gdpr/)                                                   | Medium | Data Engineering + DPO     |
+| 3        | GOV-003 | Security                     | Encrypt and pseudonymise SSNs                     | [GDPR Art. 25](https://gdpr-info.eu/art-25-gdpr/), [Art. 32](https://gdpr-info.eu/art-32-gdpr/)                                                       | Low    | Data Engineering           |
+| 4        | GOV-004 | AI Act / Automated Decisions | Implement human oversight mechanism               | [GDPR Art. 22](https://gdpr-info.eu/art-22-gdpr/), [AI Act Art. 14](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689#d1e2298-1-1) | High   | Product + Operations       |
+| 5        | GOV-005 | AI Act / Automated Decisions | Create decision audit trail                       | [GDPR Art. 22](https://gdpr-info.eu/art-22-gdpr/), [AI Act Art. 13](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689#d1e2238-1-1) | Medium | Data Science + Engineering |
+| 6        | GOV-006 | Fairness                     | Address gender disparate impact (DI = 0.77)       | [AI Act Art. 10](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689#d1e2041-1-1), [GDPR Art. 22](https://gdpr-info.eu/art-22-gdpr/) | High   | Data Science + Legal       |
+| 7        | GOV-007 | Transparency                 | Add data source and processing purpose fields     | [GDPR Art. 5(1)(b)](https://gdpr-info.eu/art-5-gdpr/), [Art. 14](https://gdpr-info.eu/art-14-gdpr/)                                                   | Low    | Engineering + Legal        |
+| 8        | GOV-008 | AI Act                       | Conduct DPIA and register with EU AI Act database | [GDPR Art. 35](https://gdpr-info.eu/art-35-gdpr/), [AI Act Art. 72](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689#d1e6487-1-1) | High   | DPO + Legal + Management   |
+| 9        | GOV-009 | Data Quality                 | Standardise gender encoding at source             | [GDPR Art. 5(1)(d)](https://gdpr-info.eu/art-5-gdpr/)                                                                                                 | Low    | Data Engineering           |
+| 10       | GOV-010 | Privacy by Design            | Apply data minimisation to spending and ZIP data  | [GDPR Art. 5(1)(c)](https://gdpr-info.eu/art-5-gdpr/), [Art. 25](https://gdpr-info.eu/art-25-gdpr/)                                                   | Medium | Data Science + DPO         |
+
+### Top 3 Immediate Actions
+
+| Priority | Control                                 | Why Urgent                                                                                                                                                                          |
+| -------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🔴 1     | GOV-001 — Implement consent tracking    | Without `consent_timestamp`, NovaCred cannot prove lawful basis — **all current processing is at legal risk**                                                                       |
+| 🔴 2     | GOV-003 — Encrypt & pseudonymise SSNs   | A breach today triggers Art. 34 individual notification for 500+ subjects; pipeline pseudonymisation is already implemented                                                         |
+| 🔴 3     | GOV-004 — Add human oversight mechanism | Required simultaneously by [GDPR Art. 22](https://gdpr-info.eu/art-22-gdpr/) and [AI Act Art. 14](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689#d1e2298-1-1) |
+
 ---
 
-## 🛡️ Governance Recommendations
+## 📊 Governance Audit Summary
+
+| Category            | Metric                                   | Value                       |
+| ------------------- | ---------------------------------------- | --------------------------- |
+| GDPR                | Total gaps identified                    | 8                           |
+| GDPR                | Critical severity gaps                   | 3                           |
+| GDPR                | High severity gaps                       | 4                           |
+| PII                 | Total fields catalogued                  | 9                           |
+| PII                 | Direct PII fields                        | 5                           |
+| Bias                | Gender DI ratio                          | 0.77 (🔴 below 0.80)        |
+| Bias                | Age-based DI                             | ✅ All bands above 0.80     |
+| Automated Decisions | Rejections citing `algorithm_risk_score` | 169 (81.6%)                 |
+| AI Act              | Risk classification                      | HIGH-RISK (Annex III §5(b)) |
+| AI Act              | Obligations triggered                    | 7                           |
+| AI Act              | Immediate compliance gaps                | 5                           |
+| Recommendations     | Total governance controls proposed       | 10                          |
+
+---
+
+## ▶️ How to Run
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Run notebooks in order (01 produces the CSVs that 02 and 03 consume)
+python -m jupyter nbconvert --to notebook --execute notebooks/01-data-quality.ipynb --inplace
+python -m jupyter nbconvert --to notebook --execute notebooks/02-bias-analysis.ipynb --inplace
+python -m jupyter nbconvert --to notebook --execute notebooks/03-privacy-demo.ipynb --inplace
+```
 
 ---
 
