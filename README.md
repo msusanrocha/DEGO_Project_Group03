@@ -58,6 +58,36 @@ DEGO_PROJECT_GROUP03/
 | Privacy            | Data contains sensitive attributes that require protection, masking, or governance control. |
 | Uniqueness         | Records or identifiers that should be distinct appear more than once. |
 
+| Rule ID        | Definition |
+|---------------|------------|
+| R_APP_001     | Missing or blank processing timestamp. |
+| R_APP_002     | One or more required applicant fields missing or blank. |
+| R_APP_003     | Both SSN and IP address are missing or blank. |
+| R_APP_004     | Email is missing or blank. |
+| R_APP_005     | Email does not match the expected format. |
+| R_APP_006     | Gender is not already in canonical form. |
+| R_APP_007     | Gender is outside the allowed values. |
+| R_APP_008     | Date of birth is not in canonical YYYY-MM-DD form. |
+| R_APP_009     | Date of birth matches an ambiguous NN/NN/YYYY pattern. |
+| R_APP_010     | Annual income is stored as a string or cannot be coerced cleanly. |
+| R_APP_011     | Annual salary is populated instead of annual income. |
+| R_APP_012     | Credit history months is negative. |
+| R_APP_013     | Savings balance is negative. |
+| R_APP_014     | Debt-to-income is outside the allowed range [0, 1]. |
+| R_APP_015     | Approved loan is missing interest_rate and/or approved_amount. |
+| R_APP_016     | Rejected loan is missing rejection_reason. |
+| R_APP_017     | Loan approved with zero months of credit history. |
+| R_APP_018     | Loan approved with less than 6 months of credit history. |
+| R_APP_019     | IP address is in a private range and likely masked or synthetic. |
+| R_SPN_001     | Spending category is missing or blank. |
+| R_SPN_002     | Spending amount cannot be parsed as numeric. |
+| R_SPN_003     | Spending amount is negative. |
+| R_DUP_001     | Rows with duplicated application_id values. |
+| R_DUP_002     | Distinct application_id values that are duplicated. |
+| R_DUP_003     | Rows where SSN repeats across one or more records. |
+| R_DUP_004     | Distinct SSN values that appear across different application IDs. |
+| R_DUP_CONFLICT| Duplicated application IDs classified as conflicts. |
+| R_DUP_CANONICAL | Canonical application rows retained for downstream analysis. |
 ## Core Outputs
 
 ### `data/curated/`
