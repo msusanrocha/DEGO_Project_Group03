@@ -1,3 +1,29 @@
+# Current Status + todos
+- @antonio working on notebook 3
+
+- @antonio filling out standard structure in notebook 3
+
+- @connor filling out standard structure in notebook 1
+
+- @connor finalizing readme
+
+- @madalena adding key insights to readme
+
+- @antonio adding key insights + governance to readme
+
+- @all finalising ppt with key insights, quantified + visualization until 07.03.
+
+
+**next meeting 07.03. 10:30 - AGENDA**
+
+- Review and arrange github structure
+
+- Reviewing questions
+
+- Reviewing ppt
+
+- Recording video
+
 # NovaCred — Credit Application Governance Analysis
 
 > DEGO 2606 Group Project – Credit Application Governance Analysis  
