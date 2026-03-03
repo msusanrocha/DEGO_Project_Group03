@@ -239,6 +239,70 @@ Hash formula: `SHA-256(novacred_static_salt_v1 | seed)`
 
 ---
 
+## 🕵️ GDPR Gap Analysis
+
+8 gaps were identified between current data processing practices and the requirements of the [GDPR](https://gdpr-info.eu/):
+
+| Severity    | Count |
+| ----------- | ----- |
+| 🔴 Critical | 3     |
+| 🟠 High     | 4     |
+| 🟡 Medium   | 1     |
+
+### Full Gap Report
+
+| Gap ID  | Gap                                                 | Status              | GDPR Article                                                                                                                                     | Severity    |
+| ------- | --------------------------------------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ----------- |
+| GAP-001 | Missing consent timestamp                           | Absent from dataset | [Art. 6](https://gdpr-info.eu/art-6-gdpr/), [Art. 7](https://gdpr-info.eu/art-7-gdpr/)                                                           | 🔴 Critical |
+| GAP-005 | No audit trail for automated decisions              | Absent from dataset | [Art. 22](https://gdpr-info.eu/art-22-gdpr/), [Art. 13](https://gdpr-info.eu/art-13-gdpr/)                                                       | 🔴 Critical |
+| GAP-006 | SSN stored unencrypted                              | Absent from dataset | [Art. 25](https://gdpr-info.eu/art-25-gdpr/), [Art. 32](https://gdpr-info.eu/art-32-gdpr/)                                                       | 🔴 Critical |
+| GAP-002 | Missing data retention policy                       | Absent from dataset | [Art. 5(1)(e)](https://gdpr-info.eu/art-5-gdpr/)                                                                                                 | 🟠 High     |
+| GAP-004 | Missing processing purpose field                    | Absent from dataset | [Art. 5(1)(b)](https://gdpr-info.eu/art-5-gdpr/)                                                                                                 | 🟠 High     |
+| GAP-003 | Missing data source / transparency field            | Absent from dataset | [Art. 14](https://gdpr-info.eu/art-14-gdpr/)                                                                                                     | 🟠 High     |
+| GAP-007 | No human oversight documentation                    | Absent from dataset | [Art. 22](https://gdpr-info.eu/art-22-gdpr/), [AI Act Art. 14](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689#d1e2298-1-1) | 🟠 High     |
+| GAP-008 | Sensitive behavioural data without explicit purpose | Absent from dataset | [Art. 5(1)(b)](https://gdpr-info.eu/art-5-gdpr/), [Art. 22](https://gdpr-info.eu/art-22-gdpr/)                                                   | 🟡 Medium   |
+
+### Evidence: `algorithm_risk_score` as Dominant Rejection Reason (GAP-005)
+
+81.6% of all rejections (169 out of 207) cite `algorithm_risk_score` as the sole reason. This directly evidences GAP-005: NovaCred is issuing consequential automated decisions with no meaningful explanation. Under [GDPR Art. 22](https://gdpr-info.eu/art-22-gdpr/), data subjects have the right to obtain an explanation and to contest the decision. Under [EU AI Act Art. 13](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689#d1e2238-1-1), the system must be sufficiently transparent that deployers can interpret its output. Neither requirement is met.
+
+### Records of Processing Activities (ROPA — [Art. 30](https://gdpr-info.eu/art-30-gdpr/))
+
+| Field                  | Value                                                                                             |
+| ---------------------- | ------------------------------------------------------------------------------------------------- |
+| Processing activity    | Credit application assessment                                                                     |
+| Controller             | NovaCred                                                                                          |
+| Purpose                | Automated creditworthiness assessment for loan approval decisions                                 |
+| Legal basis            | Art. 6(1)(b) — contract performance **(UNCONFIRMED: `consent_timestamp` absent — GAP-001)**       |
+| Data categories        | Name, email, SSN, IP address, DOB, gender, ZIP, financials, spending behaviour                    |
+| Special categories     | None directly — ZIP may act as ethnic proxy ([Art. 9](https://gdpr-info.eu/art-9-gdpr/) risk)     |
+| Recipients             | Internal credit scoring model; no third-party recipients documented                               |
+| Retention period       | **NOT DEFINED — `retention_until` absent (GAP-002)**                                              |
+| Security measures      | Pseudonymisation implemented; SSN encryption pending (GAP-006)                                    |
+| DPIA required          | Yes — automated profiling with significant effects ([Art. 35](https://gdpr-info.eu/art-35-gdpr/)) |
+| DPIA completed         | **No evidence found**                                                                             |
+| EU AI Act registration | Required — HIGH-RISK system; **not yet completed**                                                |
+
+### Breach Exposure Assessment ([Art. 33](https://gdpr-info.eu/art-33-gdpr/) / [Art. 34](https://gdpr-info.eu/art-34-gdpr/))
+
+Given SSNs are stored in plain text (GAP-006), a breach today would trigger dual notification obligations:
+
+| Metric                       | Count | Obligation                                                                                  | Notification Type                                     |
+| ---------------------------- | ----- | ------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| Unique data subjects at risk | 502   | [Art. 33](https://gdpr-info.eu/art-33-gdpr/) + [Art. 34](https://gdpr-info.eu/art-34-gdpr/) | Supervisory authority (72h) + individual notification |
+| SSNs exposed in plain text   | ~490+ | [Art. 34](https://gdpr-info.eu/art-34-gdpr/)                                                | **High-risk — individual notification required**      |
+| Email addresses exposed      | ~490+ | [Art. 33](https://gdpr-info.eu/art-33-gdpr/)                                                | Supervisory authority notification                    |
+| IP addresses exposed         | ~490+ | [Art. 33](https://gdpr-info.eu/art-33-gdpr/)                                                | Supervisory authority notification                    |
+| Full names exposed           | ~490+ | [Art. 33](https://gdpr-info.eu/art-33-gdpr/)                                                | Supervisory authority notification                    |
+
+Implementing **GOV-003** (SSN encryption + pseudonymisation) would significantly reduce Art. 34 exposure — pseudonymised data carries lower notification risk under [GDPR recital 26](https://gdpr-info.eu/recitals/no-26/).
+
+### ZIP Code as Geographic Proxy ([Art. 9](https://gdpr-info.eu/art-9-gdpr/) Risk)
+
+ZIP codes correlate with ethnic composition in many jurisdictions due to historical residential segregation. If ZIP is used as a model feature, NovaCred may be processing a proxy for ethnicity — a special category under [GDPR Art. 9](https://gdpr-info.eu/art-9-gdpr/) — without the heightened safeguards Art. 9 requires. GOV-010 addresses this risk.
+
+---
+
 ---
 
 ## 🛡️ Governance Recommendations
