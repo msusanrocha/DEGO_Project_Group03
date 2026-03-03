@@ -390,3 +390,17 @@ python -m jupyter nbconvert --to notebook --execute notebooks/03-privacy-demo.ip
 Video available at:
 
 ---
+
+## 📚 Legal References
+
+| Regulation                                 | Link                                                                                          |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| GDPR full text                             | [gdpr-info.eu](https://gdpr-info.eu/)                                                         |
+| EU AI Act full text                        | [EUR-Lex](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689)               |
+| EU AI Act Annex III — High-Risk AI Systems | [Annex III](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689#d1e3920-1-1) |
+| GDPR Art. 5 — Principles                   | [Art. 5](https://gdpr-info.eu/art-5-gdpr/)                                                    |
+| GDPR Art. 6 — Lawful basis                 | [Art. 6](https://gdpr-info.eu/art-6-gdpr/)                                                    |
+| GDPR Art. 22 — Automated decisions         | [Art. 22](https://gdpr-info.eu/art-22-gdpr/)                                                  |
+| GDPR Art. 25 — Privacy by design           | [Art. 25](https://gdpr-info.eu/art-25-gdpr/)                                                  |
+| GDPR Art. 30 — ROPA                        | [Art. 30](https://gdpr-info.eu/art-30-gdpr/)                                                  |
+| GDPR Art. 35 — DPIA                        | [Art. 35](https://gdpr-info.eu/art-35-gdpr/)                                                  |
