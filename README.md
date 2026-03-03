@@ -39,16 +39,24 @@ DEGO_PROJECT_GROUP03/
 
 ---
 
-## 🔍 Data Quality Findings
+## 🔍 Data Quality 
 
-## Project Objective
-This pipeline is intentionally scoped to three objectives:
-
+## Objectives
 1. Identify and document all data quality issues in the raw NovaCred credit application data.
 2. Quantify the extent of each issue.
 3. Demonstrate remediation steps and their impact.
+4. Provide analysis ready deliverables.
 
-The deliverable keeps the two downstream analysis tables that later notebooks depend on, but removes wider governance artifacts that are not needed for those objectives.
+## Data Quality Definitions
+
+| Issue Group        | Definition |
+|--------------------|------------|
+| Completeness       | Data required for business or regulatory purposes is missing, blank, or not populated. |
+| Validity           | Data values violate defined business rules, formats, or allowable ranges. |
+| Consistency        | Data is present but not stored in a standard, canonical, or expected representation. |
+| Cross-field logic  | Data fields are individually valid but logically inconsistent when evaluated together. |
+| Privacy            | Data contains sensitive attributes that require protection, masking, or governance control. |
+| Uniqueness         | Records or identifiers that should be distinct appear more than once. |
 
 ## Core Outputs
 
