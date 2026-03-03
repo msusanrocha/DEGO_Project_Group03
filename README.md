@@ -303,6 +303,28 @@ ZIP codes correlate with ethnic composition in many jurisdictions due to histori
 
 ---
 
+## 🤖 EU AI Act Classification
+
+NovaCred's credit scoring system is classified **HIGH-RISK** under [EU AI Act Annex III, Point 5(b)](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689#d1e3920-1-1):
+
+> _"AI systems intended to be used for creditworthiness assessment or credit scoring of natural persons."_
+
+NovaCred satisfies all three conditions: it is an ML system, it assesses creditworthiness, and it acts on individual natural persons. The combination of [GDPR Art. 22](https://gdpr-info.eu/art-22-gdpr/) and EU AI Act high-risk obligations creates a **dual compliance requirement** — both regimes apply simultaneously.
+
+### Obligations & Current Status
+
+| Article                                                                                     | Obligation                                        | Current Status                         |
+| ------------------------------------------------------------------------------------------- | ------------------------------------------------- | -------------------------------------- |
+| [Art. 9](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689#d1e1991-1-1)  | Risk management system throughout lifecycle       | ❌ No evidence                         |
+| [Art. 10](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689#d1e2041-1-1) | Data governance — training/inference data quality | ⚠️ Partial — DI = 0.77 flags data bias |
+| [Art. 13](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689#d1e2238-1-1) | Transparency — deployers can interpret outputs    | ❌ `algorithm_risk_score` is opaque    |
+| [Art. 14](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689#d1e2298-1-1) | Human oversight — ability to intervene/override   | ❌ No oversight mechanism documented   |
+| [Art. 26](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689#d1e3478-1-1) | Deployer obligations — monitor operation          | ❌ No monitoring documented            |
+| [Art. 72](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689#d1e6487-1-1) | EU database registration before deployment        | ❌ Not completed                       |
+| [GDPR Art. 35](https://gdpr-info.eu/art-35-gdpr/)                                           | DPIA required before processing                   | ❌ No evidence found                   |
+
+---
+
 ---
 
 ## 🛡️ Governance Recommendations
