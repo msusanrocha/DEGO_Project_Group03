@@ -42,7 +42,6 @@ APPLICATION_RULES: dict[str, RuleDef] = {
     "flag_approved_missing_required_fields": RuleDef("R_APP_015", "Cross-field logic", "decision.loan_approved", "Approved loan is missing interest_rate and/or approved_amount.", "high", "raw", "clean"),
     "flag_rejected_missing_reason": RuleDef("R_APP_016", "Cross-field logic", "decision.rejection_reason", "Rejected loan is missing rejection_reason.", "medium", "raw", "clean"),
     "flag_approved_credit_history_zero": RuleDef("R_APP_017", "Cross-field logic", "financials.credit_history_months", "Loan approved with zero months of credit history.", "medium", "raw", "clean"),
-    "flag_approved_credit_history_lt6": RuleDef("R_APP_018", "Cross-field logic", "financials.credit_history_months", "Loan approved with less than 6 months of credit history.", "medium", "raw", "clean"),
     "flag_private_ip_address": RuleDef("R_APP_019", "Privacy", "applicant_info.ip_address", "IP address is in a private range and likely masked or synthetic.", "low", "raw", "raw"),
 }
 
@@ -206,7 +205,6 @@ def validate_applications_preclean(df: pd.DataFrame) -> pd.DataFrame:
     flags["flag_approved_missing_required_fields"] = approved.eq(True) & (pd.to_numeric(df["raw_decision_interest_rate"], errors="coerce").isna() | pd.to_numeric(df["raw_decision_approved_amount"], errors="coerce").isna())
     flags["flag_rejected_missing_reason"] = approved.eq(False) & _blank_mask(df["raw_decision_rejection_reason"])
     flags["flag_approved_credit_history_zero"] = approved.eq(True) & credit_history.eq(0)
-    flags["flag_approved_credit_history_lt6"] = approved.eq(True) & credit_history.lt(6)
     flags["flag_private_ip_address"] = _private_ip(df["raw_applicant_ip_address"])
     return flags.fillna(False)
 
@@ -260,7 +258,6 @@ def validate_applications_postclean(df: pd.DataFrame) -> pd.DataFrame:
     flags["flag_approved_missing_required_fields"] = df["approved_missing_terms_flag"].fillna(False).astype(bool)
     flags["flag_rejected_missing_reason"] = df["rejected_missing_reason_flag"].fillna(False).astype(bool)
     flags["flag_approved_credit_history_zero"] = approved.eq(True) & credit_history.eq(0)
-    flags["flag_approved_credit_history_lt6"] = approved.eq(True) & credit_history.lt(6)
     flags["flag_private_ip_address"] = _private_ip(df["raw_applicant_ip_address"])
     return flags.fillna(False)
 
