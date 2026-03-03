@@ -35,10 +35,10 @@
 
 | Name           | Role               | GitHub                | Contributions                                                                                 |
 | -------------- | ------------------ | --------------------- | --------------------------------------------------------------------------------------------- |
-| Connor Brown   | Data Engineer      | @Connor144-iv         | Data Quality Notebook + Output, Key Findings in Readme, Data Preparation for further analysis |
-| Madalena Rocha | Data Scientist     | @msusanrocha          | GitHub Setup, Bias Analysis Notebook + Output, Key Findings in Readme, Governance Support     |
-| António Santos | Governance Officer | @antonioncmsantos-hue | Privacy Demo Notebook + Output, Key Findings in Readme, Governance Recommendations            |
-| Nora Puchert   | Product Lead       | @npu99                | Readme, Structure tracking, Meeting organisation, Requirements guidance, Presentation         |
+| Connor Brown   | Data Engineer      | @Connor144-iv         | Data Quality Notebook + Output, Key Findings in README, Data Preparation for further analysis |
+| Madalena Rocha | Data Scientist     | @msusanrocha          | GitHub Setup, Bias Analysis Notebook + Output, Key Findings in README, Governance Support     |
+| António Santos | Governance Officer | @antonioncmsantos-hue | Privacy Demo Notebook + Output, Key Findings in README, Governance Recommendations            |
+| Nora Puchert   | Product Lead       | @npu99                | Progress + structure tracking, Meeting organisation, README curation, Requirements guidance, Presentation         |
 
 ---
 
@@ -47,20 +47,20 @@
 ---
 
 ## 📁 Repository Structure
-
+The project is organized into a modular hierarchy to ensure a clear audit trail from raw data to final reporting:
 ```
 DEGO_PROJECT_GROUP03/
-├── README.md
-├── data/                       ← Dataset files
-├── figures/
-├── notebooks/
-│   ├── 01-data-quality.ipynb   ← Data loading, cleaning, profiling
-│   ├── 02-bias-analysis.ipynb  ← Fairness metrics, DI ratio, proxy analysis
-│   └── 03-privacy-demo.ipynb   ← PII inventory, pseudonymization, GDPR mapping
-└── presentation/               ← Video link
-└── reports/                    ← Analysis outputs and documentation
-├── src/
-│   └── fairness_utils.py       ←
+├── data/                       
+│   ├── curated/                # Final, high-integrity datasets for modeling
+│   ├── quality/                # Datasets with outputs and documentation
+│   └── raw/                    # Original data source
+├── figures/                    # Visualization assets and plots
+├── notebooks/                  # Main Notebooks: Data Quality, Bias Analysis, Privacy Demo
+├── presentation/               # Video link and presentation
+├── reports/                    # Additional documentation and compliance outputs
+│   └── quality/
+│   └── governance/             
+└── src/                        # Modular codebase for scalability and reuse
 ```
 
 ---
