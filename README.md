@@ -1,16 +1,5 @@
 # Current Status + todos
-
-- @antonio working on notebook 3
-
-- @antonio filling out standard structure in notebook 3
-
-- @connor filling out standard structure in notebook 1
-
-- @connor finalizing readme
-
 - @madalena adding key insights to readme
-
-- @antonio adding key insights + governance to readme
 
 - @all finalising ppt with key insights, quantified + visualization until 07.03.
 
