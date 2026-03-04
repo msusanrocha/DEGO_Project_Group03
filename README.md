@@ -43,6 +43,17 @@
 ---
 
 ## 📌 Executive Summary
+This report presents the findings of a data governance audit of NovaCred's credit application dataset, covering 502 records across data quality, algorithmic fairness, and regulatory compliance.
+
+Issues were identified across all three dimensions. On data quality, the most significant structural gap is that 87.65% of records (440 of 502) are missing a processing timestamp, which limits auditability across the majority of decisions and undermines any deterministic record selection where duplicates exist. Beyond completeness, the raw dataset contained inconsistent gender encoding across 22.1% of records, non-standard date formats in 31.3%, a field naming inconsistency between `annual_income` and `annual_salary`, and a small number of invalid financial values including negative credit history months and a debt-to-income ratio above 1.0. Two duplicate application IDs were found, one of which is a conflict duplicate with materially contradictory fields. All remediable defects were resolved in the pipeline with full audit lineage preserved through separate raw and clean columns.
+
+On fairness, the gender Disparate Impact ratio is **0.77**, falling below the four-fifths legal threshold of 0.80. A chi-squared test confirms the gap is statistically significant. No age band triggered the same threshold, though the correlation between age and credit history length is noted as a monitoring point for proxy discrimination.
+
+On governance, the audit identified **8 GDPR compliance gaps**, of which 3 are critical. These include the absence of any consent documentation across all 502 records, no data retention policy, and SSNs stored in plain text, which would trigger mandatory individual notification under GDPR Art. 34 in the event of a breach. The credit scoring system is classified **HIGH-RISK under EU AI Act Annex III §5(b)**, triggering 7 compliance obligations, the majority of which show no evidence of implementation. No DPIA has been conducted and the system has not been registered in the EU AI Act database.
+
+One finding connects all three areas. 81.6% of loan rejections cite only `algorithm_risk_score` as the sole reason with no further explanation, making it impossible to explain individual decisions to applicants as required under GDPR Art. 22 and preventing any meaningful investigation into the source of the documented gender disparity.
+
+The 10 governance recommendations in this report are sequenced by legal urgency, with consent capture, SSN encryption, and a human oversight mechanism as the immediate priorities.
 
 ---
 
