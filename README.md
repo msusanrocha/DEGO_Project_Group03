@@ -82,7 +82,7 @@ DEGO_PROJECT_GROUP03/
 
 ## Data Quality Definitions
 
-# Quality Issue Definition
+### Quality Issue Definition
 
 | Issue Group       | Definition                                                                                  |
 | ----------------- | ------------------------------------------------------------------------------------------- |
@@ -93,7 +93,7 @@ DEGO_PROJECT_GROUP03/
 | Privacy           | Data contains sensitive attributes that require protection, masking, or governance control. |
 | Uniqueness        | Records or identifiers that should be distinct appear more than once.                       |
 
-# Quality Rule Definition
+### Quality Rule Definition
 
 | Rule ID         | Definition                                                        |
 | --------------- | ----------------------------------------------------------------- |
