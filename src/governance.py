@@ -87,10 +87,10 @@ PII_FIELD_CATALOGUE: list[dict[str, str]] = [
     },
     {
         "field_path":       "applicant_info.date_of_birth",
-        "classification":   "Direct PII",
-        "gdpr_category":    "Personal data",
-        "gdpr_article":     "Art. 4(1), Art. 5(1)(c)",
-        "risk":             "High",
+        "classification":   "Quasi-PII",
+        "gdpr_category":    "Personal data (temporal identifier — identifies when combined)",
+        "gdpr_article":     "Art. 5(1)(c)",
+        "risk":             "Medium",
         "recommendation":   "Convert to age band for analytics; retain raw only in secure store",
     },
     {
@@ -709,3 +709,4 @@ def pseudonymisation_evidence(curated_df: pd.DataFrame, analysis_df: pd.DataFram
         })
 
     return pd.DataFrame(rows)
+    
