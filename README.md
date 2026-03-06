@@ -183,14 +183,6 @@ DEGO_PROJECT_GROUP03/
 - `pii_inventory.csv`
   - Minimal privacy inventory for raw, curated, and analysis datasets.
 
-## Duplicate Handling Policy
-
-Canonical application selection for downstream analysis follows this deterministic rule:
-
-1. Parse `processing_timestamp`.
-2. Keep the latest parsed timestamp within each `application_id`.
-3. If timestamps are tied, missing, or unparseable, keep the row with the highest `application_row_id`.
-
 ## Cleaning Choices
 
 - Raw values are never overwritten.
@@ -201,15 +193,6 @@ Canonical application selection for downstream analysis follows this determinist
 - `annual_salary` is mapped into `clean_annual_income` only when `annual_income` is missing.
 - Negative `credit_history_months`, out-of-range `debt_to_income`, and negative `savings_balance` are nullified in the clean columns.
 
-
-## How To Run
-
-From the repo root:
-
-```powershell
-pip install -r requirements.txt
-python -m jupyter nbconvert --to notebook --execute notebooks/01-data-quality.ipynb --inplace
-```
 
 ## Code Layout
 
