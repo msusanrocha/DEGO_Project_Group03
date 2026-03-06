@@ -124,7 +124,7 @@ DEGO_PROJECT_GROUP03/
 
 ## Data Quality Findings
 
-| issue_group       | rule_id         | metric_label                                                                                                           |   pre_clean_count |   post_clean_count |   delta_clean_count |   pre_clean_percent |   post_clean_percent |   delta_clean_percent |
+| issue_group       | rule_id         | metric_label                                                                                                           |   pre_clean_count |   post_clean_count |   delta_count |   pre_clean_percent |   post_clean_percent |   delta_percent |
 |:------------------|:----------------|:-----------------------------------------------------------------------------------------------------------------------|------------:|-------------:|--------------:|--------------:|---------------:|----------------:|
 | Completeness      | R_APP_001       | Missing or blank processing timestamp.                                                                                 |         440 |          440 |             0 |         87.65 |          87.65 |            0    |
 | Completeness      | R_APP_002       | One or more required applicant fields missing or blank.                                                                |           8 |            8 |             0 |          1.59 |           1.59 |            0    |
