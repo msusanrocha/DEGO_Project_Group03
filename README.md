@@ -3,6 +3,8 @@
 
 - @all finalising ppt with key insights, quantified + visualization until 07.03.
 
+- @all recording video on Canva until 07.03.
+
 **next meeting 07.03. 10:30 - AGENDA**
 
 - Review and arrange github structure
