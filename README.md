@@ -1,4 +1,5 @@
 # Current Status + todos
+
 - @madalena adding key insights to readme
 
 - @all finalising ppt with key insights, quantified + visualization until 07.03.
@@ -24,16 +25,17 @@
 
 ## 👥 Team
 
-| Name           | Role               | GitHub                | Contributions                                                                                 |
-| -------------- | ------------------ | --------------------- | --------------------------------------------------------------------------------------------- |
-| Connor Brown   | Data Engineer      | @Connor144-iv         | Data Quality Notebook + Output, Key Findings in README, Data Preparation for further analysis |
-| Madalena Rocha | Data Scientist     | @msusanrocha          | GitHub Setup, Bias Analysis Notebook + Output, Key Findings in README, Governance Support     |
-| António Santos | Governance Officer | @antonioncmsantos-hue | Privacy Demo Notebook + Output, Key Findings in README, Governance Recommendations            |
-| Nora Puchert   | Product Lead       | @npu99                | Progress + structure tracking, Meeting organisation, README curation, Requirements guidance, Presentation         |
+| Name           | Role               | GitHub                | Contributions                                                                                             |
+| -------------- | ------------------ | --------------------- | --------------------------------------------------------------------------------------------------------- |
+| Connor Brown   | Data Engineer      | @Connor144-iv         | Data Quality Notebook + Output, Key Findings in README, Data Preparation for further analysis             |
+| Madalena Rocha | Data Scientist     | @msusanrocha          | GitHub Setup, Bias Analysis Notebook + Output, Key Findings in README, Governance Support                 |
+| António Santos | Governance Officer | @antonioncmsantos-hue | Privacy Demo Notebook + Output, Key Findings in README, Governance Recommendations                        |
+| Nora Puchert   | Product Lead       | @npu99                | Progress + structure tracking, Meeting organisation, README curation, Requirements guidance, Presentation |
 
 ---
 
 ## 📌 Executive Summary
+
 This report presents the findings of a data governance audit of NovaCred's credit application dataset, covering 502 records across data quality, algorithmic fairness, and regulatory compliance.
 
 Issues were identified across all three dimensions. On data quality, the most significant structural gap is that 87.65% of records (440 of 502) are missing a processing timestamp, which limits auditability across the majority of decisions and undermines any deterministic record selection where duplicates exist. Beyond completeness, the raw dataset contained inconsistent gender encoding across 22.1% of records, non-standard date formats in 31.3%, a field naming inconsistency between `annual_income` and `annual_salary`, and a small number of invalid financial values including negative credit history months and a debt-to-income ratio above 1.0. Two duplicate application IDs were found, one of which is a conflict duplicate with materially contradictory fields. All remediable defects were resolved in the pipeline with full audit lineage preserved through separate raw and clean columns.
@@ -49,10 +51,12 @@ The 10 governance recommendations in this report are sequenced by legal urgency,
 ---
 
 ## 📁 Repository Structure
+
 The project is organized into a modular hierarchy to ensure a clear audit trail from raw data to final reporting:
+
 ```
 DEGO_PROJECT_GROUP03/
-├── data/                       
+├── data/
 │   ├── curated/                # Final, high-integrity datasets for modeling
 │   ├── quality/                # Datasets with outputs and documentation
 │   └── raw/                    # Original data source
@@ -61,7 +65,7 @@ DEGO_PROJECT_GROUP03/
 ├── presentation/               # Video link and presentation
 ├── reports/                    # Additional documentation and compliance outputs
 │   └── quality/
-│   └── governance/             
+│   └── governance/
 └── src/                        # Modular codebase for scalability and reuse
 ```
 
@@ -205,17 +209,17 @@ python -m jupyter nbconvert --to notebook --execute notebooks/01-data-quality.ip
 
 Under [GDPR Art. 30](https://gdpr-info.eu/art-30-gdpr/), controllers must maintain Records of Processing Activities documenting the categories of personal data processed.
 
-| Field                                    | Classification   | Risk         | GDPR Article                                                                                    | Recommendation                                             |
-| ---------------------------------------- | ---------------- | ------------ | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| `applicant_info.full_name`               | Direct PII       | High         | [Art. 4(1)](https://gdpr-info.eu/art-4-gdpr/), [Art. 5(1)(c)](https://gdpr-info.eu/art-5-gdpr/) | Pseudonymise or redact                                     |
-| `applicant_info.email`                   | Direct PII       | High         | [Art. 4(1)](https://gdpr-info.eu/art-4-gdpr/), [Art. 5(1)(c)](https://gdpr-info.eu/art-5-gdpr/) | Pseudonymise; mask domain for analytics                    |
-| `applicant_info.ssn`                     | Direct PII       | **Critical** | [Art. 4(1)](https://gdpr-info.eu/art-4-gdpr/), [Art. 32](https://gdpr-info.eu/art-32-gdpr/)     | Encrypt at rest; pseudonymise for all processing           |
-| `applicant_info.ip_address`              | Direct PII       | High         | [Art. 4(1)](https://gdpr-info.eu/art-4-gdpr/), [Art. 5(1)(c)](https://gdpr-info.eu/art-5-gdpr/) | Retain only for fraud/security; apply storage limitation   |
-| `applicant_info.date_of_birth`           | Direct PII       | High         | [Art. 4(1)](https://gdpr-info.eu/art-4-gdpr/), [Art. 5(1)(c)](https://gdpr-info.eu/art-5-gdpr/) | Convert to age band for analytics                          |
-| `applicant_info.gender`                  | Quasi-PII        | Medium       | [Art. 5(1)(c)](https://gdpr-info.eu/art-5-gdpr/)                                                | Retain for fairness monitoring only                        |
-| `applicant_info.zip_code`                | Quasi-PII        | Medium       | [Art. 5(1)(c)](https://gdpr-info.eu/art-5-gdpr/)                                                | Monitor as potential ethnic proxy                          |
-| `spending_behavior`                      | Behavioural data | High         | [Art. 5(1)(b)](https://gdpr-info.eu/art-5-gdpr/), [Art. 22](https://gdpr-info.eu/art-22-gdpr/)  | Document purpose limitation; assess Art. 22 profiling risk |
-| `decision.loan_approved + interest_rate` | Decision output  | **Critical** | [Art. 22](https://gdpr-info.eu/art-22-gdpr/), [Art. 13](https://gdpr-info.eu/art-13-gdpr/)      | Provide explanation mechanism; ensure human oversight      |
+| Field                                    | Classification   | Risk         | GDPR Article                                                                                    | Recommendation                                                     |
+| ---------------------------------------- | ---------------- | ------------ | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `applicant_info.full_name`               | Direct PII       | High         | [Art. 4(1)](https://gdpr-info.eu/art-4-gdpr/), [Art. 5(1)(c)](https://gdpr-info.eu/art-5-gdpr/) | Pseudonymise or redact                                             |
+| `applicant_info.email`                   | Direct PII       | High         | [Art. 4(1)](https://gdpr-info.eu/art-4-gdpr/), [Art. 5(1)(c)](https://gdpr-info.eu/art-5-gdpr/) | Pseudonymise; mask domain for analytics                            |
+| `applicant_info.ssn`                     | Direct PII       | **Critical** | [Art. 4(1)](https://gdpr-info.eu/art-4-gdpr/), [Art. 32](https://gdpr-info.eu/art-32-gdpr/)     | Encrypt at rest; pseudonymise for all processing                   |
+| `applicant_info.ip_address`              | Direct PII       | High         | [Art. 4(1)](https://gdpr-info.eu/art-4-gdpr/), [Art. 5(1)(c)](https://gdpr-info.eu/art-5-gdpr/) | Retain only for fraud/security; apply storage limitation           |
+| `applicant_info.date_of_birth`           | Quasi-PII        | Medium       | [Art. 5(1)(c)](https://gdpr-info.eu/art-5-gdpr/)                                                | Convert to age band for analytics; retain raw only in secure store |
+| `applicant_info.gender`                  | Quasi-PII        | Medium       | [Art. 5(1)(c)](https://gdpr-info.eu/art-5-gdpr/)                                                | Retain for fairness monitoring only                                |
+| `applicant_info.zip_code`                | Quasi-PII        | Medium       | [Art. 5(1)(c)](https://gdpr-info.eu/art-5-gdpr/)                                                | Monitor as potential ethnic proxy                                  |
+| `spending_behavior`                      | Behavioural data | High         | [Art. 5(1)(b)](https://gdpr-info.eu/art-5-gdpr/), [Art. 22](https://gdpr-info.eu/art-22-gdpr/)  | Document purpose limitation; assess Art. 22 profiling risk         |
+| `decision.loan_approved + interest_rate` | Decision output  | **Critical** | [Art. 22](https://gdpr-info.eu/art-22-gdpr/), [Art. 13](https://gdpr-info.eu/art-13-gdpr/)      | Provide explanation mechanism; ensure human oversight              |
 
 ### Pseudonymisation Design
 
@@ -362,7 +366,8 @@ NovaCred satisfies all three conditions: it is an ML system, it assesses creditw
 | GDPR                | Critical severity gaps                   | 3                           |
 | GDPR                | High severity gaps                       | 4                           |
 | PII                 | Total fields catalogued                  | 9                           |
-| PII                 | Direct PII fields                        | 5                           |
+| PII                 | Direct PII fields                        | 4                           |
+| PII                 | Quasi-PII fields                         | 3                           |
 | Bias                | Gender DI ratio                          | 0.77 (🔴 below 0.80)        |
 | Bias                | Age-based DI                             | ✅ All bands above 0.80     |
 | Automated Decisions | Rejections citing `algorithm_risk_score` | 169 (81.6%)                 |
