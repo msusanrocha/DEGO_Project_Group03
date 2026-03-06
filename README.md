@@ -82,6 +82,8 @@ DEGO_PROJECT_GROUP03/
 
 ## Data Quality Definitions
 
+# Quality Issue Definition
+
 | Issue Group       | Definition                                                                                  |
 | ----------------- | ------------------------------------------------------------------------------------------- |
 | Completeness      | Data required for business or regulatory purposes is missing, blank, or not populated.      |
@@ -90,6 +92,8 @@ DEGO_PROJECT_GROUP03/
 | Cross-field logic | Data fields are individually valid but logically inconsistent when evaluated together.      |
 | Privacy           | Data contains sensitive attributes that require protection, masking, or governance control. |
 | Uniqueness        | Records or identifiers that should be distinct appear more than once.                       |
+
+# Quality Rule Definition
 
 | Rule ID         | Definition                                                        |
 | --------------- | ----------------------------------------------------------------- |
