@@ -122,6 +122,38 @@ DEGO_PROJECT_GROUP03/
 | R_DUP_CONFLICT  | Duplicated application IDs classified as conflicts.               |
 | R_DUP_CANONICAL | Canonical application rows retained for downstream analysis.      |
 
+## Data Quality Findings
+
+| issue_group       | rule_id         | metric_label                                                                                                           |   pre_count |   post_count |   delta_count |   pre_percent |   post_percent |   delta_percent |
+|:------------------|:----------------|:-----------------------------------------------------------------------------------------------------------------------|------------:|-------------:|--------------:|--------------:|---------------:|----------------:|
+| Completeness      | R_APP_001       | Missing or blank processing timestamp.                                                                                 |         440 |          440 |             0 |         87.65 |          87.65 |            0    |
+| Completeness      | R_APP_002       | One or more required applicant fields missing or blank.                                                                |           8 |            8 |             0 |          1.59 |           1.59 |            0    |
+| Completeness      | R_APP_003       | Both SSN and IP address are missing or blank.                                                                          |           5 |            5 |             0 |          1    |           1    |            0    |
+| Completeness      | R_APP_004       | Email is missing or blank.                                                                                             |           7 |            7 |             0 |          1.39 |           1.39 |            0    |
+| Validity          | R_APP_005       | Email does not match the expected format.                                                                              |           4 |            4 |             0 |          0.8  |           0.8  |            0    |
+| Consistency       | R_APP_006       | Gender is not already in canonical form.                                                                               |         111 |            0 |          -111 |         22.11 |           0    |          -22.11 |
+| Validity          | R_APP_007       | Gender is outside the allowed values.                                                                                  |           0 |            0 |             0 |          0    |           0    |            0    |
+| Consistency       | R_APP_008       | Date of birth is not in canonical YYYY-MM-DD form.                                                                     |         157 |            0 |          -157 |         31.27 |           0    |          -31.27 |
+| Consistency       | R_APP_009       | Date of birth matches the ambiguous NN/NN/YYYY pattern. When DOB is NN/NN/YYYY and both NN <= 12, parse as MM/DD/YYYY. |          39 |           39 |             0 |          7.77 |           7.77 |            0    |
+| Consistency       | R_APP_010       | Annual income is stored as a string or cannot be coerced cleanly.                                                      |           0 |            0 |             0 |          0    |           0    |            0    |
+| Consistency       | R_APP_011       | Annual salary is populated instead of annual income.                                                                   |           5 |            5 |             0 |          1    |           1    |            0    |
+| Validity          | R_APP_012       | Credit history months is negative.                                                                                     |           2 |            0 |            -2 |          0.4  |           0    |           -0.4  |
+| Validity          | R_APP_013       | Savings balance is negative.                                                                                           |           1 |            0 |            -1 |          0.2  |           0    |           -0.2  |
+| Validity          | R_APP_014       | Debt-to-income is outside the allowed range [0, 1].                                                                    |           1 |            0 |            -1 |          0.2  |           0    |           -0.2  |
+| Cross-field logic | R_APP_015       | Approved loan is missing interest_rate and/or approved_amount.                                                         |           0 |            0 |             0 |          0    |           0    |            0    |
+| Cross-field logic | R_APP_016       | Rejected loan is missing rejection_reason.                                                                             |           0 |            0 |             0 |          0    |           0    |            0    |
+| Cross-field logic | R_APP_017       | Loan approved with zero months of credit history.                                                                      |          11 |           11 |             0 |          2.19 |           2.19 |            0    |
+| Privacy           | R_APP_019       | IP address is in a private range and likely masked or synthetic.                                                       |         497 |          497 |             0 |         99    |          99    |            0    |
+| Uniqueness        | R_DUP_001       | Rows with duplicated application_id values.                                                                            |           4 |            4 |             0 |          0.8  |           0.8  |            0    |
+| Uniqueness        | R_DUP_002       | Distinct application_id values that are duplicated.                                                                    |           2 |            2 |             0 |          0.4  |           0.4  |            0    |
+| Uniqueness        | R_DUP_003       | Rows where SSN repeats across one or more records.                                                                     |           6 |            6 |             0 |          1.2  |           1.2  |            0    |
+| Uniqueness        | R_DUP_004       | Distinct SSN values that appear across different application IDs.                                                      |           2 |            2 |             0 |          0.4  |           0.4  |            0    |
+| Remediation       | R_DUP_CANONICAL | Canonical rows retained for analysis                                                                                   |         502 |          500 |            -2 |        100    |          99.6  |           -0.4  |
+| Uniqueness        | R_DUP_CONFLICT  | Duplicate conflict IDs                                                                                                 |           1 |            1 |             0 |          0.2  |           0.2  |            0    |
+| Completeness      | R_SPN_001       | Spending category is missing or blank.                                                                                 |           0 |            0 |             0 |          0    |           0    |            0    |
+| Validity          | R_SPN_002       | Spending amount cannot be parsed as numeric.                                                                           |           0 |            0 |             0 |          0    |           0    |            0    |
+| Validity          | R_SPN_003       | Spending amount is negative.                                                                                           |           0 |            0 |             0 |          0    |           0    |            0    |
+
 ## Core Outputs
 
 ### `data/curated/`
@@ -169,13 +201,6 @@ Canonical application selection for downstream analysis follows this determinist
 - `annual_salary` is mapped into `clean_annual_income` only when `annual_income` is missing.
 - Negative `credit_history_months`, out-of-range `debt_to_income`, and negative `savings_balance` are nullified in the clean columns.
 
-## Privacy Policy
-
-- `applications_curated_full.csv` is restricted and may contain direct PII.
-- `applications_analysis.csv` is PII-safe.
-  - Direct identifiers are removed.
-  - Applicants are represented by `applicant_pseudo_id`.
-  - Date of birth is replaced with `age_band`.
 
 ## How To Run
 
