@@ -212,6 +212,63 @@ DEGO_PROJECT_GROUP03/
 ---
 
 ## ⚖️ Bias Detection & Fairness
+---
+### Objectives
+
+1. Quantify whether demographic groups face systematically different approval outcomes.
+2. Identify proxy discrimination channels in financial and behavioural features.
+3. Provide a fairness evidence base for the regulatory response.
+
+### Core Outputs
+
+#### `data/quality/`
+- `fairness_summary.csv`
+  - Consolidated fairness metrics table.
+  - One row per analysis: DI ratios, p-values, significance flags, and interest rate comparison.
+  - Primary evidence document for the regulatory response.
+
+#### `figures/`
+- `fig1_gender_disparate_impact.png` — Approval rate by gender and DI gauge with four-fifths threshold.
+- `fig2_age_approval_rates.png` — Approval rate by age band with reference and DI threshold lines.
+- `fig3_gender_age_heatmap.png` — Heatmap of approval rate by gender × age band.
+- `fig4_gender_age_grouped_bars.png` — Grouped bar chart of approval rate by age band split by gender.
+- `fig5_financial_features_by_gender.png` — Box plots of financial feature distributions by gender.
+- `fig6_interest_rate_by_gender.png` — Interest rate distributions for approved applicants by gender.
+
+### Key Findings
+
+| Analysis | Result | Significant? |
+|---|---|---|
+| Gender — Disparate Impact Ratio | DI = 0.77 | Yes (p < 0.05) |
+| Gender — Demographic Parity Difference | DPD < 0 | Yes (p < 0.05) |
+| Age — DI by band (vs 25–34 reference) | All DI ≥ 0.80 | No |
+| Financial features — proxy check (Mann-Whitney) | No features flagged | No |
+| Credit history × age (Spearman correlation) | rho > 0 | Yes |
+| Interest rate disparity (approved applicants) | No gap found | No |
+| Rejection reason × gender (chi-squared, top 5) | chi2 = 2.37, p = 0.499 | No |
+
+The gender DI of 0.77 falls below the four-fifths regulatory threshold of 0.80 and is confirmed as statistically significant. No age band triggered the same threshold. 81.6% of rejections cite `algorithm_risk_score` as the sole reason, which prevents meaningful fairness auditability at the reason level and is flagged as a separate governance concern.
+
+### Analytical Choices
+
+- All fairness metrics are implemented from scratch using `scipy` and `pandas` — no external fairness libraries.
+- The four-fifths rule (DI < 0.80) is applied as the regulatory threshold for both gender and age analyses.
+- The 25–34 age band is used as the reference group for age DI comparisons, as it represents the prime working-age segment with the largest sample.
+- Mann-Whitney U tests are used instead of t-tests for continuous variable comparisons, as financial features are not normally distributed.
+- The rejection reason chi-squared test is restricted to the top 5 reasons to ensure minimum expected cell frequencies are met.
+- Interaction effects (gender × age) are reported descriptively only — statistical testing at the intersection level was not pursued due to small cell sizes in several combinations.
+
+### Code Layout
+
+- `src/bias.py`: all bias analysis logic — data loading, fairness metrics, statistical tests, approval tables, proxy analysis, plots, and summary builder.
+- `notebooks/02-bias-analysis.ipynb`: orchestration notebook.
+
+### How To Run
+
+From the repo root:
+```powershell
+python -m jupyter nbconvert --to notebook --execute notebooks/02-bias-analysis.ipynb --inplace
+```
 
 ---
 
