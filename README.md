@@ -1,6 +1,6 @@
 # NovaCred — Credit Application Governance Analysis
 
-> DEGO 2606 Group Project – Credit Application Governance Analysis  
+> DEGO 2606 Group Project – Credit Application Governance Analysis Group 3C
 > MSc Business Analytics | Nova SBE | 2025/26 T3
 
 ---
@@ -46,7 +46,7 @@ The project is organized into a modular hierarchy to ensure a clear audit trail 
 DEGO_PROJECT_GROUP03/
 ├── data/                       # Cleaned datasets for further analysis, additional outputs, original data source
 ├── figures/                    # Visualization assets and plots
-├── notebooks/                  # Main Notebooks: Data Quality, Bias Analysis, Privacy Demo
+├── notebooks/                  # Analysis Notebooks: Data Quality, Bias Analysis, Privacy Demo
 ├── presentation/               # Video link and presentation
 ├── reports/                    # Additional documentation and outputs
 └── src/                        # Modular codebase for scalability and reuse
