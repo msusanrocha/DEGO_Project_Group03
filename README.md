@@ -1,21 +1,3 @@
-# Current Status + todos
-
-- @madalena adding key insights to readme
-
-- @all finalising ppt with key insights, quantified + visualization until 07.03.
-
-- @all recording video on Canva until 07.03.
-
-**next meeting 07.03. 10:30 - AGENDA**
-
-- Review and arrange github structure
-
-- Reviewing questions
-
-- Reviewing ppt
-
-- Recording video
-
 # NovaCred — Credit Application Governance Analysis
 
 > DEGO 2606 Group Project – Credit Application Governance Analysis  
@@ -56,16 +38,11 @@ The project is organized into a modular hierarchy to ensure a clear audit trail 
 
 ```
 DEGO_PROJECT_GROUP03/
-├── data/
-│   ├── curated/                # Final, high-integrity datasets for modeling
-│   ├── quality/                # Datasets with outputs and documentation
-│   └── raw/                    # Original data source
+├── data/                       # Cleaned datasets for further analysis, additional outputs, original data source
 ├── figures/                    # Visualization assets and plots
 ├── notebooks/                  # Main Notebooks: Data Quality, Bias Analysis, Privacy Demo
 ├── presentation/               # Video link and presentation
-├── reports/                    # Additional documentation and compliance outputs
-│   └── quality/
-│   └── governance/
+├── reports/                    # Additional documentation and outputs
 └── src/                        # Modular codebase for scalability and reuse
 ```
 
