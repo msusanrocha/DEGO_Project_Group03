@@ -32,6 +32,12 @@ The 10 governance recommendations in this report are sequenced by legal urgency,
 
 ---
 
+## 🎥 Presentation
+
+Video available at:
+
+---
+
 ## 📁 Repository Structure
 
 The project is organized into a modular hierarchy to ensure a clear audit trail from raw data to final reporting:
@@ -438,11 +444,6 @@ python -m jupyter nbconvert --to notebook --execute notebooks/03-privacy-demo.ip
 
 ---
 
-## 🎥 Presentation
-
-Video available at:
-
----
 
 ## 📚 Legal References
 
