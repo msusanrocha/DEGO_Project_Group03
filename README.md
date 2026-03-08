@@ -35,7 +35,7 @@ The 10 governance recommendations in this report are sequenced by legal urgency,
 ## 🎥 Presentation
 
 Video available at:
-[PPT available here](./DEGO_NovaCred_Presentation_Group3C.pdf)
+[PPT available here](presentation/DEGO_NovaCred_Presentation_Group3C.pdf)
 
 ---
 
