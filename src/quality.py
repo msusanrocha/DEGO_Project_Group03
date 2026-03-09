@@ -229,30 +229,23 @@ def _lookup_metric(report: pd.DataFrame, stage: str, rule_id: str) -> tuple[int,
 
 def build_before_after_comparison(*, quality_report: pd.DataFrame, duplicate_report: pd.DataFrame, duplicate_metadata: pd.DataFrame, total_records: int, canonical_count: int) -> pd.DataFrame:
     """Build a compact before-vs-after remediation evidence table."""
-    metrics = [
-        ("R_APP_002", "Missing required applicant fields"),
-        ("R_APP_005", "Invalid email format"),
-        ("R_APP_006", "Gender requires standardisation"),
-        ("R_APP_008", "DOB not in ISO format"),
-        ("R_APP_009", "DOB ambiguity"),
-        ("R_APP_010", "Annual income coercion issue"),
-        ("R_APP_011", "Annual salary field drift"),
-        ("R_APP_012", "Negative credit history months"),
-        ("R_APP_013", "Negative savings balance"),
-        ("R_APP_014", "Debt-to-income out of range"),
-        ("R_APP_018", "Approved with credit history under 6 months"),
-        ("R_SPN_001", "Spending missing category"),
-        ("R_SPN_002", "Spending amount invalid"),
-        ("R_SPN_003", "Spending amount negative"),
-    ]
-
     rows: list[dict[str, Any]] = []
-    for rule_id, metric_label in metrics:
-        pre_count, pre_percent, issue_group = _lookup_metric(quality_report, "pre", rule_id)
-        post_count, post_percent, issue_group_post = _lookup_metric(quality_report, "post", rule_id)
+    rule_catalog = schema.build_rule_catalog()
+    comparison_rules = (
+        rule_catalog.loc[~rule_catalog["rule_id"].isin({"R_DUP_CONFLICT", "R_DUP_CANONICAL"}), ["issue_group", "rule_id", "description"]]
+        .drop_duplicates(subset=["rule_id"])
+        .sort_values("rule_id")
+    )
+
+    for _, catalog_row in comparison_rules.iterrows():
+        rule_id = str(catalog_row["rule_id"])
+        metric_label = str(catalog_row["description"])
+        catalog_issue_group = str(catalog_row["issue_group"])
+        pre_count, pre_percent, pre_issue_group = _lookup_metric(quality_report, "pre", rule_id)
+        post_count, post_percent, post_issue_group = _lookup_metric(quality_report, "post", rule_id)
         rows.append(
             {
-                "issue_group": issue_group or issue_group_post,
+                "issue_group": pre_issue_group or post_issue_group or catalog_issue_group,
                 "rule_id": rule_id,
                 "metric_label": metric_label,
                 "pre_count": pre_count,
@@ -267,7 +260,6 @@ def build_before_after_comparison(*, quality_report: pd.DataFrame, duplicate_rep
     duplicate_rows = int(duplicate_metadata["is_duplicate_id"].fillna(False).astype(bool).sum())
     conflict_ids = int(duplicate_report.loc[duplicate_report["classification"] == "conflict", "application_id"].nunique())
     rows.extend([
-        {"issue_group": "Uniqueness", "rule_id": "R_DUP_001", "metric_label": "Duplicate application_id rows", "pre_count": duplicate_rows, "post_count": duplicate_rows, "delta_count": 0, "pre_percent": round((duplicate_rows / total_records) * 100 if total_records else 0.0, 2), "post_percent": round((duplicate_rows / total_records) * 100 if total_records else 0.0, 2), "delta_percent": 0.0},
         {"issue_group": "Uniqueness", "rule_id": "R_DUP_CONFLICT", "metric_label": "Duplicate conflict IDs", "pre_count": conflict_ids, "post_count": conflict_ids, "delta_count": 0, "pre_percent": round((conflict_ids / total_records) * 100 if total_records else 0.0, 2), "post_percent": round((conflict_ids / total_records) * 100 if total_records else 0.0, 2), "delta_percent": 0.0},
         {"issue_group": "Remediation", "rule_id": "R_DUP_CANONICAL", "metric_label": "Canonical rows retained for analysis", "pre_count": total_records, "post_count": canonical_count, "delta_count": canonical_count - total_records, "pre_percent": 100.0 if total_records else 0.0, "post_percent": round((canonical_count / total_records) * 100 if total_records else 0.0, 2), "delta_percent": round(((canonical_count / total_records) * 100 - 100.0) if total_records else 0.0, 2)},
     ])

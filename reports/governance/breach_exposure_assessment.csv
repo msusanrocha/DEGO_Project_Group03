@@ -1,0 +1,6 @@
+metric,value,gdpr_obligation,notification_type
+Unique data subjects at risk,498,Art. 33 + Art. 34,Supervisory authority (72h) + individual notification
+SSNs exposed in plain text,497,Art. 34,High-risk — individual notification required
+Email addresses exposed,495,Art. 33,Supervisory authority notification
+IP addresses exposed,497,Art. 33,Supervisory authority notification
+Full names exposed,502,Art. 33,Supervisory authority notification

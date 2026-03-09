@@ -1,0 +1,10 @@
+field_path,classification,gdpr_category,gdpr_article,risk,recommendation
+applicant_info.full_name,Direct PII,Personal data,"Art. 4(1), Art. 5(1)(c)",High,Pseudonymise or redact; retain only in secure audit log
+applicant_info.email,Direct PII,Personal data,"Art. 4(1), Art. 5(1)(c)",High,Pseudonymise; mask domain for analytics
+applicant_info.ssn,Direct PII,Personal data (national identifier equivalent),"Art. 4(1), Art. 5(1)(c), Art. 32",Critical,Encrypt at rest; pseudonymise for all processing beyond identity verification
+applicant_info.ip_address,Direct PII,Online identifier — personal data per GDPR recital 30,"Art. 4(1), Art. 5(1)(c)",High,Retain only for fraud/security purposes; apply storage limitation
+applicant_info.date_of_birth,Quasi-PII,Personal data (temporal identifier — identifies when combined),Art. 5(1)(c),Medium,Convert to age band for analytics; retain raw only in secure store
+applicant_info.gender,Quasi-PII,Personal data,Art. 5(1)(c),Medium,Retain for fairness monitoring only; document lawful basis
+applicant_info.zip_code,Quasi-PII,Personal data (location proxy),Art. 5(1)(c),Medium,Monitor as potential proxy variable for protected characteristics
+spending_behavior[].category + amount,Behavioural data,Personal data — behavioural profiling,"Art. 5(1)(b), Art. 22",High,Document purpose limitation; assess whether profiling triggers Art. 22
+decision.loan_approved + interest_rate,Decision output,Automated decision affecting data subject,"Art. 22, Art. 13",Critical,Provide explanation mechanism; ensure human oversight for adverse decisions

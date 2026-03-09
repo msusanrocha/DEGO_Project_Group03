@@ -41,7 +41,6 @@ DIRECT_PII_COLUMNS = [
     "raw_applicant_email",
     "raw_applicant_ssn",
     "raw_applicant_ip_address",
-    "raw_applicant_date_of_birth",
     "clean_email",
     "clean_date_of_birth",
 ]

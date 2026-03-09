@@ -220,7 +220,7 @@ def generate_pii_inventory(*, curated_full_df: pd.DataFrame, analysis_df: pd.Dat
         {"field_path": "applicant_info.email", "classification": "PII", "present_in_raw": True, "present_in_curated": "raw_applicant_email" in curated_columns, "present_in_analysis": False},
         {"field_path": "applicant_info.ssn", "classification": "PII", "present_in_raw": True, "present_in_curated": "raw_applicant_ssn" in curated_columns, "present_in_analysis": False},
         {"field_path": "applicant_info.ip_address", "classification": "PII", "present_in_raw": True, "present_in_curated": "raw_applicant_ip_address" in curated_columns, "present_in_analysis": False},
-        {"field_path": "applicant_info.date_of_birth", "classification": "PII", "present_in_raw": True, "present_in_curated": "raw_applicant_date_of_birth" in curated_columns, "present_in_analysis": False},
+        {"field_path": "applicant_info.date_of_birth", "classification": "Quasi-PII", "present_in_raw": True, "present_in_curated": "raw_applicant_date_of_birth" in curated_columns, "present_in_analysis": False},
         {"field_path": "applicant_info.gender", "classification": "Quasi-PII", "present_in_raw": True, "present_in_curated": "clean_gender" in curated_columns, "present_in_analysis": "clean_gender" in analysis_columns},
         {"field_path": "applicant_info.zip_code", "classification": "Quasi-PII", "present_in_raw": True, "present_in_curated": "clean_zip_code" in curated_columns, "present_in_analysis": "clean_zip_code" in analysis_columns},
         {"field_path": "applicant_pseudo_id", "classification": "Quasi-PII", "present_in_raw": False, "present_in_curated": False, "present_in_analysis": "applicant_pseudo_id" in analysis_columns},

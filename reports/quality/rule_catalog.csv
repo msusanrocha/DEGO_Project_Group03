@@ -1,0 +1,55 @@
+stage,rule_id,issue_group,field_path,field_path_annotated,value_source,severity,description
+pre,R_APP_001,Completeness,processing_timestamp,,raw,high,Missing or blank processing timestamp.
+pre,R_APP_002,Completeness,applicant_info.*,,raw,high,One or more required applicant fields missing or blank.
+pre,R_APP_003,Completeness,applicant_info.ssn|applicant_info.ip_address,,raw,high,Both SSN and IP address are missing or blank.
+pre,R_APP_004,Completeness,applicant_info.email,,raw,medium,Email is missing or blank.
+pre,R_APP_005,Validity,applicant_info.email,,raw,medium,Email does not match the expected format.
+pre,R_APP_006,Consistency,applicant_info.gender,applicant_info.gender_raw,raw,low,Gender is not already in canonical form.
+pre,R_APP_007,Validity,applicant_info.gender,,raw,medium,Gender is outside the allowed values.
+pre,R_APP_008,Consistency,applicant_info.date_of_birth,applicant_info.date_of_birth_raw,raw,low,Date of birth is not in canonical YYYY-MM-DD form.
+pre,R_APP_009,Consistency,applicant_info.date_of_birth,applicant_info.date_of_birth_raw,raw,medium,"Date of birth matches the ambiguous NN/NN/YYYY pattern. When DOB is NN/NN/YYYY and both NN <= 12, parse as MM/DD/YYYY."
+pre,R_APP_010,Consistency,financials.annual_income,financials.annual_income_raw,raw,low,Annual income is stored as a string or cannot be coerced cleanly.
+pre,R_APP_011,Consistency,financials.annual_salary,financials.annual_salary_raw,raw,medium,Annual salary is populated instead of annual income.
+pre,R_APP_012,Validity,financials.credit_history_months,,raw,high,Credit history months is negative.
+pre,R_APP_013,Validity,financials.savings_balance,,raw,high,Savings balance is negative.
+pre,R_APP_014,Validity,financials.debt_to_income,,raw,high,"Debt-to-income is outside the allowed range [0, 1]."
+pre,R_APP_015,Cross-field logic,decision.loan_approved,,raw,high,Approved loan is missing interest_rate and/or approved_amount.
+pre,R_APP_016,Cross-field logic,decision.rejection_reason,,raw,medium,Rejected loan is missing rejection_reason.
+pre,R_APP_017,Cross-field logic,financials.credit_history_months,,raw,medium,Loan approved with zero months of credit history.
+pre,R_APP_018,Cross-field logic,financials.credit_history_months,,raw,medium,Loan approved with less than 6 months of credit history.
+pre,R_APP_019,Privacy,applicant_info.ip_address,,raw,low,IP address is in a private range and likely masked or synthetic.
+pre,R_SPN_001,Completeness,spending_behavior[].category,,raw,medium,Spending category is missing or blank.
+pre,R_SPN_002,Validity,spending_behavior[].amount,spending_behavior[].amount_raw,raw,high,Spending amount cannot be parsed as numeric.
+pre,R_SPN_003,Validity,spending_behavior[].amount,spending_behavior[].amount_raw,raw,high,Spending amount is negative.
+pre,R_DUP_001,Uniqueness,_id,,metadata,high,Rows with duplicated application_id values.
+pre,R_DUP_002,Uniqueness,_id,,metadata,high,Distinct application_id values that are duplicated.
+pre,R_DUP_003,Uniqueness,applicant_info.ssn,,raw,high,Rows where SSN repeats across one or more records.
+pre,R_DUP_004,Uniqueness,applicant_info.ssn,,raw,high,Distinct SSN values that appear across different application IDs.
+post,R_APP_001,Completeness,processing_timestamp,,clean,high,Missing or blank processing timestamp.
+post,R_APP_002,Completeness,applicant_info.*,,clean,high,One or more required applicant fields missing or blank.
+post,R_APP_003,Completeness,applicant_info.ssn|applicant_info.ip_address,,raw,high,Both SSN and IP address are missing or blank.
+post,R_APP_004,Completeness,applicant_info.email,,clean,medium,Email is missing or blank.
+post,R_APP_005,Validity,applicant_info.email,,clean,medium,Email does not match the expected format.
+post,R_APP_006,Consistency,applicant_info.gender,applicant_info.gender_clean,clean,low,Gender is not already in canonical form.
+post,R_APP_007,Validity,applicant_info.gender,,clean,medium,Gender is outside the allowed values.
+post,R_APP_008,Consistency,applicant_info.date_of_birth,applicant_info.date_of_birth_clean,clean,low,Date of birth is not in canonical YYYY-MM-DD form.
+post,R_APP_009,Consistency,applicant_info.date_of_birth,applicant_info.date_of_birth_raw,derived,medium,"Date of birth matches the ambiguous NN/NN/YYYY pattern. When DOB is NN/NN/YYYY and both NN <= 12, parse as MM/DD/YYYY."
+post,R_APP_010,Consistency,financials.annual_income,financials.annual_income_clean,derived,low,Annual income is stored as a string or cannot be coerced cleanly.
+post,R_APP_011,Consistency,financials.annual_salary,financials.annual_income_clean,derived,medium,Annual salary is populated instead of annual income.
+post,R_APP_012,Validity,financials.credit_history_months,,clean,high,Credit history months is negative.
+post,R_APP_013,Validity,financials.savings_balance,,clean,high,Savings balance is negative.
+post,R_APP_014,Validity,financials.debt_to_income,,clean,high,"Debt-to-income is outside the allowed range [0, 1]."
+post,R_APP_015,Cross-field logic,decision.loan_approved,,clean,high,Approved loan is missing interest_rate and/or approved_amount.
+post,R_APP_016,Cross-field logic,decision.rejection_reason,,clean,medium,Rejected loan is missing rejection_reason.
+post,R_APP_017,Cross-field logic,financials.credit_history_months,,clean,medium,Loan approved with zero months of credit history.
+post,R_APP_018,Cross-field logic,financials.credit_history_months,,clean,medium,Loan approved with less than 6 months of credit history.
+post,R_APP_019,Privacy,applicant_info.ip_address,,raw,low,IP address is in a private range and likely masked or synthetic.
+post,R_SPN_001,Completeness,spending_behavior[].category,,clean,medium,Spending category is missing or blank.
+post,R_SPN_002,Validity,spending_behavior[].amount,spending_behavior[].amount_clean,derived,high,Spending amount cannot be parsed as numeric.
+post,R_SPN_003,Validity,spending_behavior[].amount,spending_behavior[].amount_clean,clean,high,Spending amount is negative.
+post,R_DUP_001,Uniqueness,_id,,metadata,high,Rows with duplicated application_id values.
+post,R_DUP_002,Uniqueness,_id,,metadata,high,Distinct application_id values that are duplicated.
+post,R_DUP_003,Uniqueness,applicant_info.ssn,,raw,high,Rows where SSN repeats across one or more records.
+post,R_DUP_004,Uniqueness,applicant_info.ssn,,raw,high,Distinct SSN values that appear across different application IDs.
+post,R_DUP_CONFLICT,Uniqueness,_id,,metadata,high,Duplicated application IDs classified as conflicts.
+post,R_DUP_CANONICAL,Remediation,_id,,metadata,medium,Canonical application rows retained for downstream analysis.

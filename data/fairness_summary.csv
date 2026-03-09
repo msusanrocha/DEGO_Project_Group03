@@ -1,0 +1,9 @@
+analysis,metric_value,four_fifths_flag,p_value,significant_at_05,note
+Gender — Disparate Impact Ratio,0.7698,True,0.000826,True,Female rate 50.8% vs Male 66.0%
+Gender — Demographic Parity Difference,-0.1519,,0.000826,True,Negative = Female approval rate below Male
+Age — DI ratio (<25 vs 25-34),0.9881,False,0.011477,True,n=13
+Age — DI ratio (35-44 vs 25-34),1.4026,False,0.011477,True,n=174
+Age — DI ratio (45-54 vs 25-34),1.3780,False,0.011477,True,n=87
+Age — DI ratio (55-64 vs 25-34),1.3380,False,0.011477,True,n=56
+Age — DI ratio (65+ vs 25-34),1.1528,False,0.011477,True,n=13
+Interest Rate — Gender gap (approved only),Male=4.7000 Female=4.4000,,0.326435,False,"n Male=163, n Female=127"

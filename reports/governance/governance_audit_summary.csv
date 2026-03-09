@@ -1,0 +1,16 @@
+category,metric,value
+GDPR Gaps,Total gaps identified,8
+GDPR Gaps,Critical severity,3
+GDPR Gaps,High severity,4
+GDPR Gaps,Medium severity,1
+PII,Total PII fields catalogued,9
+PII,Direct PII fields,4
+PII,Quasi-PII fields,3
+AI Act,Risk level,HIGH-RISK
+AI Act,Legal basis,Annex III Section 5(b)
+AI Act,Total obligations,7
+AI Act,Immediate compliance gaps,5
+Recommendations,Total governance controls,10
+Recommendations,Critical/Legal priority,3
+Automated Decisions,Rejections citing algorithm_risk_score,169
+Automated Decisions,algorithm_risk_score rejection rate (%),81.2

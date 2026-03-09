@@ -1,0 +1,6 @@
+artefact,path,last_modified,sha256
+pii_inventory,C:\Users\anton\OneDrive - Nova SBE\Nova\S2\DEGO\DEGO_GP\DEGO_Project_Group03\data\quality\pii_inventory.csv,2026-02-28T16:45:45,2e74b36bf781d57d8d4d0b0e43d56c07d81464a305ce0676a495e42ab1980d1a
+applications_analysis,C:\Users\anton\OneDrive - Nova SBE\Nova\S2\DEGO\DEGO_GP\DEGO_Project_Group03\data\curated\applications_analysis.csv,2026-02-28T13:13:22,67c8f3649bcbbd6193de61c4ef69cee5d0dab08fe13a38d24be61d28e16fb2ab
+applications_curated_full,C:\Users\anton\OneDrive - Nova SBE\Nova\S2\DEGO\DEGO_GP\DEGO_Project_Group03\data\curated\applications_curated_full.csv,2026-02-28T16:45:45,158b7d1e6a31c0c0b53f6c963df3396a10be67b65051350c3cf6d9a9587749c2
+dq_postclean_report,C:\Users\anton\OneDrive - Nova SBE\Nova\S2\DEGO\DEGO_GP\DEGO_Project_Group03\data\quality\reports\post\data_quality_report_postclean.csv,2026-02-28T08:27:40,a852214eb7b32cf0d441d1fa241fe478631f55d4187b926192175011cc7df052
+fairness_summary,C:\Users\anton\OneDrive - Nova SBE\Nova\S2\DEGO\DEGO_GP\DEGO_Project_Group03\data\fairness_summary.csv,2026-03-01T14:47:40,daf260611e2aa22ec4f8c28dc211ea738d52d02a8fbdb4d9a51762620cb21ad8
